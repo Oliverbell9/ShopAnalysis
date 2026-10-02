@@ -35,8 +35,6 @@ data/raw/*
 data/parquet/*
 !data/parquet/.gitkeep
 
-data/manifests/*
-!data/manifests/.gitkeep
 
 data/samples/*
 !data/samples/.gitkeep

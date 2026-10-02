@@ -1,0 +1,283 @@
+version: 1
+
+source:
+  name: olist
+  display_name: Olist Brazilian E-Commerce Public Dataset
+  publisher: Olist
+  provider: Kaggle
+  dataset_slug: olistbr/brazilian-ecommerce
+  license: CC-BY-NC-SA-4.0
+  manifest: data/manifests/olist_manifest.json
+  raw_location: data/raw/olist
+  cadence: static_public_dataset
+
+contract_policy:
+  raw_immutability: true
+  preserve_source_column_names: true
+  preserve_source_values: true
+  encoding_read_policy: utf-8-sig
+  notes:
+    - Raw CSV files are immutable source artifacts and are not committed to Git.
+    - UTF-8 BOM handling occurs during decoding; source bytes are not modified.
+    - Source spelling such as product_name_lenght and product_description_lenght is preserved in RAW.
+    - Friendly renaming and business normalization belong in dbt staging.
+    - Observed characteristics document the acquired dataset version; enforced rules are declared separately.
+
+entities:
+
+  customers:
+    file: olist_customers_dataset.csv
+    grain: one row per customer_id
+    observed_rows: 99441
+    primary_key:
+      columns:
+        - customer_id
+      observed_unique: true
+      observed_null_rows: 0
+    enforced:
+      required_columns:
+        - customer_id
+        - customer_unique_id
+        - customer_zip_code_prefix
+        - customer_city
+        - customer_state
+      primary_key_not_null: true
+      primary_key_unique: true
+
+  geolocation:
+    file: olist_geolocation_dataset.csv
+    grain: source geolocation observations; multiple rows may exist per ZIP-code prefix
+    observed_rows: 1000163
+    observed_exact_duplicate_rows: 261831
+    candidate_key_rejected:
+      columns:
+        - geolocation_zip_code_prefix
+      observed_distinct_values: 19015
+      reason: geolocation_zip_code_prefix is not unique
+    enforced:
+      required_columns:
+        - geolocation_zip_code_prefix
+        - geolocation_lat
+        - geolocation_lng
+        - geolocation_city
+        - geolocation_state
+      allow_exact_duplicate_rows: true
+
+  order_items:
+    file: olist_order_items_dataset.csv
+    grain: one row per order_id and order_item_id
+    observed_rows: 112650
+    primary_key:
+      columns:
+        - order_id
+        - order_item_id
+      observed_unique: true
+      observed_null_rows: 0
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+      price_nonnegative: true
+      freight_value_nonnegative: true
+
+  order_payments:
+    file: olist_order_payments_dataset.csv
+    grain: one row per order_id and payment_sequential
+    observed_rows: 103886
+    primary_key:
+      columns:
+        - order_id
+        - payment_sequential
+      observed_unique: true
+      observed_null_rows: 0
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+      payment_value_nonnegative: true
+
+  order_reviews:
+    file: olist_order_reviews_dataset.csv
+    grain: one row per review_id and order_id
+    observed_rows: 99224
+    primary_key:
+      columns:
+        - review_id
+        - order_id
+      observed_unique: true
+      observed_null_rows: 0
+    rejected_single_column_keys:
+      review_id:
+        observed_unique_combinations: 98410
+        observed_duplicate_rows: 1603
+      order_id:
+        observed_unique_combinations: 98673
+        observed_duplicate_rows: 1098
+    nullable_columns:
+      review_comment_title:
+        observed_null_count: 87656
+        observed_null_percent: 88.342
+      review_comment_message:
+        observed_null_count: 58247
+        observed_null_percent: 58.703
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+      review_score_allowed_values:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+
+  orders:
+    file: olist_orders_dataset.csv
+    grain: one row per order_id
+    observed_rows: 99441
+    primary_key:
+      columns:
+        - order_id
+      observed_unique: true
+      observed_null_rows: 0
+    observed_purchase_range:
+      minimum: "2016-09-04 21:15:19"
+      maximum: "2018-10-17 17:30:18"
+    nullable_columns:
+      order_approved_at:
+        observed_null_count: 160
+      order_delivered_carrier_date:
+        observed_null_count: 1783
+      order_delivered_customer_date:
+        observed_null_count: 2965
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+      required_columns:
+        - order_id
+        - customer_id
+        - order_status
+        - order_purchase_timestamp
+        - order_estimated_delivery_date
+
+  products:
+    file: olist_products_dataset.csv
+    grain: one row per product_id
+    observed_rows: 32951
+    primary_key:
+      columns:
+        - product_id
+      observed_unique: true
+      observed_null_rows: 0
+    nullable_characteristics:
+      category_related_null_rows: 610
+      physical_dimension_null_rows: 2
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+
+  sellers:
+    file: olist_sellers_dataset.csv
+    grain: one row per seller_id
+    observed_rows: 3095
+    primary_key:
+      columns:
+        - seller_id
+      observed_unique: true
+      observed_null_rows: 0
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+
+  product_category_translation:
+    file: product_category_name_translation.csv
+    grain: one row per product_category_name
+    observed_rows: 71
+    primary_key:
+      columns:
+        - product_category_name
+      observed_unique: true
+      observed_null_rows: 0
+    enforced:
+      primary_key_not_null: true
+      primary_key_unique: true
+
+relationships:
+
+  - name: orders_customer
+    child: orders.customer_id
+    parent: customers.customer_id
+    observed_orphans: 0
+    enforced_orphan_count: 0
+
+  - name: items_order
+    child: order_items.order_id
+    parent: orders.order_id
+    observed_orphans: 0
+    enforced_orphan_count: 0
+
+  - name: items_product
+    child: order_items.product_id
+    parent: products.product_id
+    observed_orphans: 0
+    enforced_orphan_count: 0
+
+  - name: items_seller
+    child: order_items.seller_id
+    parent: sellers.seller_id
+    observed_orphans: 0
+    enforced_orphan_count: 0
+
+  - name: payments_order
+    child: order_payments.order_id
+    parent: orders.order_id
+    observed_orphans: 0
+    enforced_orphan_count: 0
+
+  - name: reviews_order
+    child: order_reviews.order_id
+    parent: orders.order_id
+    observed_orphans: 0
+    enforced_orphan_count: 0
+
+  - name: product_category_translation
+    child: products.product_category_name
+    parent: product_category_translation.product_category_name
+    observed_non_null_child_rows: 32341
+    observed_orphans: 13
+    enforcement:
+      policy: known_source_exception
+      maximum_orphan_rows: 13
+      known_unmatched_values:
+        portateis_cozinha_e_preparadores_de_alimentos: 10
+        pc_gamer: 3
+
+observed_domains:
+
+  order_status:
+    delivered: 96478
+    shipped: 1107
+    canceled: 625
+    unavailable: 609
+    invoiced: 314
+    processing: 301
+    created: 5
+    approved: 2
+
+  monetary_ranges:
+    item_price:
+      minimum: 0.85
+      maximum: 6735.00
+      observed_negative_rows: 0
+    freight_value:
+      minimum: 0.00
+      maximum: 409.68
+      observed_negative_rows: 0
+    payment_value:
+      minimum: 0.00
+      maximum: 13664.08
+      observed_negative_rows: 0
+
+  review_score_counts:
+    1: 11424
+    2: 3151
+    3: 8179
+    4: 19142
+    5: 57328
