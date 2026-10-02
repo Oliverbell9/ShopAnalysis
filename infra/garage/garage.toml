@@ -1,0 +1,24 @@
+# ShopAnalysis local S3-compatible object storage
+# Garage v2.4.1
+#
+# Secrets are supplied through environment variables.
+# GARAGE_RPC_SECRET must NOT be stored in this file.
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+
+db_engine = "lmdb"
+
+# ShopAnalysis uses one Garage node for the permanent local
+# development/portfolio architecture.
+replication_factor = 1
+
+compression_level = 2
+
+# Internal Garage RPC endpoint.
+rpc_bind_addr = "[::]:3901"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage"

@@ -1,0 +1,23 @@
+name: shopanalysis
+
+services:
+  garage:
+    image: dxflrs/garage@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020
+    container_name: shopanalysis-garage
+    command: ["/garage", "server", "--single-node"]
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET}
+    ports:
+      - "3900:3900"
+      - "3901:3901"
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    restart: unless-stopped
+
+volumes:
+  garage_meta:
+    name: shopanalysis_garage_meta
+  garage_data:
+    name: shopanalysis_garage_data

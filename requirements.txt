@@ -1,0 +1,30 @@
+# ShopAnalysis Python dependencies
+# Validated with Python 3.14.6 on 2026-10-01
+
+# Data processing / storage
+pandas==3.0.6
+pyarrow==23.0.1
+duckdb==1.5.6
+
+# Cloud / ingestion
+boto3==1.43.107
+snowflake-connector-python==4.8.0
+requests==2.34.2
+
+# Configuration / synthetic data
+python-dotenv==1.2.4
+PyYAML==6.0.3
+Faker==40.40.0
+
+# Testing / code quality
+pytest==9.1.1
+ruff==0.16.10
+
+# Notebook environment
+jupyterlab==4.6.4
+
+# Analytics / statistics / machine learning
+matplotlib==3.11.2
+scikit-learn==1.9.1
+lifetimes==0.11.3
+statsmodels==0.15.0
