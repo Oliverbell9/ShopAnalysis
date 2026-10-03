@@ -9,16 +9,20 @@ models:
         data_tests:
           - not_null
           - unique
+
       - name: customer_unique_id
         description: Persistent customer identifier across orders.
         data_tests:
           - not_null
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__geolocation
     description: >
@@ -29,18 +33,23 @@ models:
       - name: geolocation_zip_code_prefix
         data_tests:
           - not_null
+
       - name: geolocation_latitude
         data_tests:
           - not_null
+
       - name: geolocation_longitude
         data_tests:
           - not_null
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__order_items
     description: Cleaned and deduplicated Olist order items at one row per order_id and order_item_id.
@@ -48,25 +57,54 @@ models:
       - unique:
           arguments:
             column_name: "order_id || '-' || cast(order_item_id as varchar)"
+
     columns:
       - name: order_id
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+
       - name: order_item_id
         data_tests:
           - not_null
+
       - name: product_id
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__products')
+                field: product_id
+
       - name: seller_id
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__sellers')
+                field: seller_id
+
       - name: shipping_limit_at
         data_tests:
           - not_null
+
+      - name: price
+        description: Item price. Contract requires nonnegative values.
+        data_tests:
+          - nonnegative
+
+      - name: freight_value
+        description: Freight charge allocated to the order item. Contract requires nonnegative values.
+        data_tests:
+          - nonnegative
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
@@ -78,9 +116,15 @@ models:
         data_tests:
           - not_null
           - unique
+
       - name: customer_id
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__customers')
+                field: customer_id
+
       - name: order_status
         data_tests:
           - not_null
@@ -95,18 +139,23 @@ models:
                   - processing
                   - shipped
                   - unavailable
+
       - name: order_purchased_at
         data_tests:
           - not_null
+
       - name: estimated_delivery_at
         data_tests:
           - not_null
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__payments
     description: Cleaned and deduplicated Olist payments at one row per order_id and payment_sequence.
@@ -114,28 +163,42 @@ models:
       - unique:
           arguments:
             column_name: "order_id || '-' || cast(payment_sequence as varchar)"
+
     columns:
       - name: order_id
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+
       - name: payment_sequence
         data_tests:
           - not_null
+
       - name: payment_type
         data_tests:
           - not_null
+
       - name: payment_installments
         data_tests:
           - not_null
+
       - name: payment_value
+        description: Payment value. Contract requires nonnegative values.
         data_tests:
           - not_null
+          - nonnegative
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__products
     description: Cleaned and deduplicated Olist products at one row per product_id.
@@ -144,12 +207,15 @@ models:
         data_tests:
           - not_null
           - unique
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__reviews
     description: Cleaned and deduplicated Olist reviews at one row per review_id and order_id.
@@ -157,13 +223,20 @@ models:
       - unique:
           arguments:
             column_name: "review_id || '-' || order_id"
+
     columns:
       - name: review_id
         data_tests:
           - not_null
+
       - name: order_id
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+
       - name: review_score
         data_tests:
           - not_null
@@ -171,18 +244,23 @@ models:
               arguments:
                 values: [1, 2, 3, 4, 5]
                 quote: false
+
       - name: review_created_at
         data_tests:
           - not_null
+
       - name: review_answered_at
         data_tests:
           - not_null
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__sellers
     description: Cleaned and deduplicated Olist sellers at one row per seller_id.
@@ -191,12 +269,15 @@ models:
         data_tests:
           - not_null
           - unique
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
+
 
   - name: stg_olist__translation
     description: Olist product-category translations at one row per Portuguese category name.
@@ -205,12 +286,15 @@ models:
         data_tests:
           - not_null
           - unique
+
       - name: product_category_name_english
         data_tests:
           - not_null
+
       - name: _batch_id
         data_tests:
           - not_null
+
       - name: _loaded_at
         data_tests:
           - not_null
