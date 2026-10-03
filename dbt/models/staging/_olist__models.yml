@@ -1,0 +1,216 @@
+version: 2
+
+models:
+  - name: stg_olist__customers
+    description: Cleaned and deduplicated Olist customers at one row per customer_id.
+    columns:
+      - name: customer_id
+        description: Order-level customer identifier.
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_unique_id
+        description: Persistent customer identifier across orders.
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__geolocation
+    description: >
+      Cleaned Olist geolocation observations. Source cardinality is deliberately
+      preserved because the source contains legitimate duplicate observations
+      and no established row-level business key.
+    columns:
+      - name: geolocation_zip_code_prefix
+        data_tests:
+          - not_null
+      - name: geolocation_latitude
+        data_tests:
+          - not_null
+      - name: geolocation_longitude
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__order_items
+    description: Cleaned and deduplicated Olist order items at one row per order_id and order_item_id.
+    data_tests:
+      - unique:
+          arguments:
+            column_name: "order_id || '-' || cast(order_item_id as varchar)"
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: order_item_id
+        data_tests:
+          - not_null
+      - name: product_id
+        data_tests:
+          - not_null
+      - name: seller_id
+        data_tests:
+          - not_null
+      - name: shipping_limit_at
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__orders
+    description: Cleaned and deduplicated Olist orders at one row per order_id.
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_id
+        data_tests:
+          - not_null
+      - name: order_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - approved
+                  - canceled
+                  - created
+                  - delivered
+                  - invoiced
+                  - processing
+                  - shipped
+                  - unavailable
+      - name: order_purchased_at
+        data_tests:
+          - not_null
+      - name: estimated_delivery_at
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__payments
+    description: Cleaned and deduplicated Olist payments at one row per order_id and payment_sequence.
+    data_tests:
+      - unique:
+          arguments:
+            column_name: "order_id || '-' || cast(payment_sequence as varchar)"
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: payment_sequence
+        data_tests:
+          - not_null
+      - name: payment_type
+        data_tests:
+          - not_null
+      - name: payment_installments
+        data_tests:
+          - not_null
+      - name: payment_value
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__products
+    description: Cleaned and deduplicated Olist products at one row per product_id.
+    columns:
+      - name: product_id
+        data_tests:
+          - not_null
+          - unique
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__reviews
+    description: Cleaned and deduplicated Olist reviews at one row per review_id and order_id.
+    data_tests:
+      - unique:
+          arguments:
+            column_name: "review_id || '-' || order_id"
+    columns:
+      - name: review_id
+        data_tests:
+          - not_null
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: review_score
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: review_created_at
+        data_tests:
+          - not_null
+      - name: review_answered_at
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__sellers
+    description: Cleaned and deduplicated Olist sellers at one row per seller_id.
+    columns:
+      - name: seller_id
+        data_tests:
+          - not_null
+          - unique
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null
+
+  - name: stg_olist__translation
+    description: Olist product-category translations at one row per Portuguese category name.
+    columns:
+      - name: product_category_name
+        data_tests:
+          - not_null
+          - unique
+      - name: product_category_name_english
+        data_tests:
+          - not_null
+      - name: _batch_id
+        data_tests:
+          - not_null
+      - name: _loaded_at
+        data_tests:
+          - not_null

@@ -50,6 +50,7 @@ data/garage/
 dbt/target/
 dbt/logs/
 dbt/dbt_packages/
+dbt/.user.yml
 
 # Terraform generated/state files
 **/.terraform/*

@@ -1,0 +1,8 @@
+shopanalysis:
+  target: dev
+
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/shopanalysis.duckdb
+      threads: 4

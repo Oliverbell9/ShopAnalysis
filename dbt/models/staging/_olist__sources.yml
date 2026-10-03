@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    description: >
+      Olist source data loaded from governed Parquet landing files into
+      the DuckDB RAW schema. RAW tables preserve source values and
+      ingestion lineage before dbt transformations.
+    schema: raw
+
+    tables:
+      - name: olist_customers
+        description: Raw Olist customer records.
+
+      - name: olist_geolocation
+        description: Raw Olist geolocation records.
+
+      - name: olist_order_items
+        description: Raw Olist order-item records.
+
+      - name: olist_orders
+        description: Raw Olist order records.
+
+      - name: olist_payments
+        description: Raw Olist payment records.
+
+      - name: olist_products
+        description: Raw Olist product records.
+
+      - name: olist_reviews
+        description: Raw Olist review records.
+
+      - name: olist_sellers
+        description: Raw Olist seller records.
+
+      - name: olist_translation
+        description: Raw Olist product-category translation records.
