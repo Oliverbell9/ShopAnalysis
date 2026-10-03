@@ -12,7 +12,7 @@ renamed as (
         cast(payment_sequential as bigint) as payment_sequence,
         cast(payment_type as varchar) as payment_type,
         cast(payment_installments as bigint) as payment_installments,
-        cast(payment_value as double) as payment_value,
+        cast(payment_value as decimal(18,2)) as payment_value,
 
         cast(_source_file as varchar) as _source_file,
         cast(_file_row_number as bigint) as _file_row_number,

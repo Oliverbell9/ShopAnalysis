@@ -13,8 +13,8 @@ renamed as (
         cast(product_id as varchar) as product_id,
         cast(seller_id as varchar) as seller_id,
         cast(shipping_limit_date as timestamp) as shipping_limit_at,
-        cast(price as double) as price,
-        cast(freight_value as double) as freight_value,
+        cast(price as decimal(18,2)) as price,
+        cast(freight_value as decimal(18,2)) as freight_value,
 
         cast(_source_file as varchar) as _source_file,
         cast(_file_row_number as bigint) as _file_row_number,
