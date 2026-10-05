@@ -1,0 +1,122 @@
+version: 2
+
+models:
+  - name: int_olist__order_items_by_order
+    description: >
+      Order-level aggregation of Olist order items. One row per order_id
+      appearing in the order-items source. Monetary values use exact
+      fixed-point arithmetic inherited from staging.
+    columns:
+      - name: order_id
+        description: Order identifier and model grain.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+
+      - name: item_count
+        description: Number of order-item records associated with the order.
+        data_tests:
+          - not_null
+
+      - name: distinct_product_count
+        description: Number of distinct products associated with the order.
+        data_tests:
+          - not_null
+
+      - name: distinct_seller_count
+        description: Number of distinct sellers associated with the order.
+        data_tests:
+          - not_null
+
+      - name: item_revenue
+        description: Sum of item price at order grain.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: freight_revenue
+        description: Sum of freight value at order grain.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: item_plus_freight
+        description: Sum of item price plus freight value at order grain.
+        data_tests:
+          - not_null
+          - nonnegative
+
+  - name: int_olist__payments_by_order
+    description: >
+      Order-level aggregation of Olist payment records. One row per order_id
+      appearing in the payments source.
+    columns:
+      - name: order_id
+        description: Order identifier and model grain.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+
+      - name: payment_record_count
+        description: Number of payment records associated with the order.
+        data_tests:
+          - not_null
+
+      - name: payment_type_count
+        description: Number of distinct payment types associated with the order.
+        data_tests:
+          - not_null
+
+      - name: payment_value
+        description: Sum of payment value at order grain.
+        data_tests:
+          - not_null
+          - nonnegative
+
+  - name: int_olist__reviews_by_order
+    description: >
+      Order-level aggregation of Olist review records. One row per order_id
+      appearing in the reviews source.
+    columns:
+      - name: order_id
+        description: Order identifier and model grain.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+
+      - name: review_record_count
+        description: Number of review records associated with the order.
+        data_tests:
+          - not_null
+
+      - name: distinct_review_count
+        description: Number of distinct review identifiers associated with the order.
+        data_tests:
+          - not_null
+
+      - name: minimum_review_score
+        description: Minimum review score associated with the order.
+        data_tests:
+          - not_null
+
+      - name: maximum_review_score
+        description: Maximum review score associated with the order.
+        data_tests:
+          - not_null
+
+      - name: average_review_score
+        description: Arithmetic mean of review scores associated with the order.
+        data_tests:
+          - not_null
