@@ -183,3 +183,70 @@ models:
           has no corresponding payment records. This field is retained for
           reconciliation and is not yet designated as the authoritative
           revenue metric.
+
+  - name: int_olist__order_reconciliation
+    description: >
+      Order-grain reconciliation of item-plus-freight amounts against payment
+      amounts. The model preserves the complete order population and classifies
+      observed differences mechanically without assigning unsupported business
+      causes such as discounts, refunds, interest, or financing charges.
+    columns:
+      - name: order_id
+        description: Order identifier and model grain.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_olist__orders_enriched')
+                field: order_id
+
+      - name: customer_id
+        description: Transactional customer identifier associated with the order.
+        data_tests:
+          - not_null
+
+      - name: customer_unique_id
+        description: Persistent customer identifier used for cross-order analysis.
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: Source order status.
+        data_tests:
+          - not_null
+
+      - name: item_plus_freight
+        description: >
+          Sum of observed item price and freight amounts. Null when no item
+          records exist. This is a reconciliation input and is not yet designated
+          as the authoritative revenue metric.
+
+      - name: payment_value
+        description: >
+          Sum of observed payment amounts. Null when no payment records exist.
+          This is a reconciliation input and is not yet designated as the
+          authoritative revenue metric.
+
+      - name: payment_item_difference
+        description: >
+          Payment value minus item-plus-freight value when both are present.
+          Positive values indicate payment above item-plus-freight; negative
+          values indicate payment below item-plus-freight.
+
+      - name: reconciliation_status
+        description: >
+          Mechanical classification of payment versus item-plus-freight
+          reconciliation, including missing-source conditions and a one-cent
+          tolerance.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - exact_match
+                  - within_one_cent
+                  - payment_above_item_plus_freight
+                  - payment_below_item_plus_freight
+                  - missing_items
+                  - missing_payment
