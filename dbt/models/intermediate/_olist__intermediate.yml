@@ -120,3 +120,66 @@ models:
         description: Arithmetic mean of review scores associated with the order.
         data_tests:
           - not_null
+
+  - name: int_olist__orders_enriched
+    description: >
+      Canonical order-grain intermediate model built from the complete Olist
+      order spine and enriched with customer identity, geography, independently
+      aggregated order items, payments, and reviews. Child aggregates are joined
+      with left joins to preserve every source order and prevent fanout.
+    columns:
+      - name: order_id
+        description: Order identifier and model grain.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: Transactional customer identifier associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__customers')
+                field: customer_id
+
+      - name: customer_unique_id
+        description: >
+          Persistent customer identifier carried from the customer source for
+          cross-order customer analysis.
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: Source order status.
+        data_tests:
+          - not_null
+
+      - name: order_purchased_at
+        description: Timestamp at which the order was purchased.
+        data_tests:
+          - not_null
+
+      - name: item_revenue
+        description: >
+          Sum of item prices when item records exist. Null when the order has
+          no corresponding item records. This field is not yet designated as
+          the authoritative revenue metric.
+
+      - name: freight_revenue
+        description: >
+          Sum of freight values when item records exist. Null when the order
+          has no corresponding item records.
+
+      - name: item_plus_freight
+        description: >
+          Sum of item prices and freight values when item records exist.
+          This field is retained for reconciliation and is not yet designated
+          as the authoritative revenue metric.
+
+      - name: payment_value
+        description: >
+          Sum of payment values when payment records exist. Null when the order
+          has no corresponding payment records. This field is retained for
+          reconciliation and is not yet designated as the authoritative
+          revenue metric.
