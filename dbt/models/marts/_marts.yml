@@ -1,0 +1,106 @@
+version: 2
+
+models:
+  - name: fct_olist_orders
+    description: >
+      Governed order-grain analytical fact table for Olist. Preserves one row
+      per source order and exposes merchandise value, freight value, gross
+      order value, payment value, reconciliation status, and delivery
+      recognition flags without treating payment value as authoritative revenue.
+
+    columns:
+      - name: order_id
+        description: Unique Olist order identifier and fact-table grain.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: Transactional Olist customer identifier associated with the order.
+        data_tests:
+          - not_null
+
+      - name: customer_unique_id
+        description: Persistent Olist customer identity across orders.
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: Source order lifecycle status.
+        data_tests:
+          - not_null
+
+      - name: order_purchased_at
+        description: Source purchase timestamp used for booking and demand analysis.
+        data_tests:
+          - not_null
+
+      - name: delivered_to_customer_at
+        description: >
+          Recorded customer-delivery timestamp. May be null even when the
+          source order status is delivered.
+
+      - name: merchandise_value
+        description: >
+          Sum of source item prices for the order. For delivered orders this
+          contributes to governed gross merchandise revenue.
+        data_tests:
+          - nonnegative
+
+      - name: freight_value
+        description: >
+          Sum of source freight values for the order, maintained separately
+          from merchandise value.
+        data_tests:
+          - nonnegative
+
+      - name: gross_order_value
+        description: >
+          Source item value plus freight value. For delivered orders this
+          contributes to governed gross order value.
+        data_tests:
+          - nonnegative
+
+      - name: payment_value
+        description: >
+          Sum of recorded payment values for the order. This is a payment and
+          reconciliation measure and is not the authoritative revenue metric.
+        data_tests:
+          - nonnegative
+
+      - name: payment_item_difference
+        description: >
+          Payment value minus gross order value when both financial domains
+          are present. No unsupported business cause is assigned to the difference.
+
+      - name: reconciliation_status
+        description: Governed mechanical reconciliation classification.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - exact_match
+                  - within_one_cent
+                  - payment_above_item_plus_freight
+                  - payment_below_item_plus_freight
+                  - missing_items
+                  - missing_payment
+
+      - name: is_delivered
+        description: True when source order_status equals delivered.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+
+      - name: is_delivery_timestamp_exception
+        description: >
+          True when an order is classified as delivered but has no recorded
+          customer-delivery timestamp.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
