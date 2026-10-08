@@ -23,6 +23,7 @@ final as (
         o.order_id,
         o.customer_id,
         o.customer_unique_id,
+        d.customer_sk,
 
         o.order_status,
 
@@ -70,6 +71,14 @@ final as (
 
     inner join reconciliation r
         on o.order_id = r.order_id
+
+    inner join {{ ref('dim_customer') }} d
+        on o.customer_unique_id = d.customer_unique_id
+       and o.order_purchased_at >= d.valid_from
+       and (
+            o.order_purchased_at < d.valid_to
+            or d.valid_to is null
+       )
 
 )
 

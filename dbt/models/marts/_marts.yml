@@ -25,6 +25,17 @@ models:
         data_tests:
           - not_null
 
+      - name: customer_sk
+        description: >
+          Historical customer surrogate key identifying the SCD2 geography
+          version effective at the order purchase timestamp.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_sk
+
       - name: order_status
         description: Source order lifecycle status.
         data_tests:
