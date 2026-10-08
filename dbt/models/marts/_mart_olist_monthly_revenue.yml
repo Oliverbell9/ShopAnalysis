@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: mart_olist_monthly_revenue
+    description: >
+      Monthly delivered-order purchase-cohort analytics.
+      One row per populated purchase month. Financial measures
+      include only orders with order_status = 'delivered'.
+      The reporting month is based on order_purchased_at,
+      not the customer-delivery timestamp.
+
+    columns:
+      - name: purchase_month
+        description: First calendar day of the order purchase month.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: delivered_orders
+        description: Count of delivered orders purchased during the month.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: gross_merchandise_revenue
+        description: Delivered merchandise value excluding freight.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: freight_value
+        description: Delivered freight value.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: gross_order_value
+        description: Delivered merchandise value plus freight.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: average_gross_order_value
+        description: >
+          Gross order value divided by delivered orders,
+          rounded to two decimal places.
+        data_tests:
+          - not_null
+          - nonnegative
