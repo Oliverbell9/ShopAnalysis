@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: mart_olist_customer_revenue
+    description: >
+      One row per unique customer with at least one delivered order.
+      Revenue is based on delivered orders and purchase timestamps.
+      Geography comes from the current customer dimension version.
+      Merchandise excludes freight; gross order value includes freight.
+      Repeat customers have more than one delivered order.
+      Purchase span uses calendar-day differences.
+
+    columns:
+      - name: customer_unique_id
+        description: Unique customer business identifier and reporting grain.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_city
+        description: City from the current customer dimension version.
+        data_tests:
+          - not_null
+
+      - name: customer_state
+        description: State from the current customer dimension version.
+        data_tests:
+          - not_null
+
+      - name: customer_zip_code_prefix
+        description: ZIP code prefix from the current customer dimension version.
+        data_tests:
+          - not_null
+
+      - name: delivered_orders
+        description: Number of delivered orders attributed to the customer.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: is_repeat_customer
+        description: True when the customer has more than one delivered order.
+        data_tests:
+          - not_null
+
+      - name: first_delivered_purchase_at
+        description: Earliest purchase timestamp among delivered orders.
+        data_tests:
+          - not_null
+
+      - name: last_delivered_purchase_at
+        description: Latest purchase timestamp among delivered orders.
+        data_tests:
+          - not_null
+
+      - name: purchase_span_days
+        description: Calendar-day difference between first and last delivered purchases.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: gross_merchandise_revenue
+        description: Delivered merchandise value excluding freight.
+        data_tests:
+          - not_null
+
+      - name: freight_value
+        description: Freight value associated with delivered orders.
+        data_tests:
+          - not_null
+
+      - name: gross_order_value
+        description: Delivered merchandise plus freight.
+        data_tests:
+          - not_null
+
+      - name: average_gross_order_value
+        description: Gross order value divided by delivered order count.
