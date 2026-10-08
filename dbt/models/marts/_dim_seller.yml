@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: dim_seller
+    description: >
+      Governed Olist seller dimension at one row per seller_id.
+      Preserves seller geography from the deduplicated source.
+      Does not infer historical seller address changes.
+
+    columns:
+      - name: seller_id
+        description: Unique Olist seller business key.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_olist__sellers')
+                field: seller_id
+
+      - name: seller_zip_code_prefix
+        description: Seller ZIP-code prefix recorded in the source.
+
+      - name: seller_city
+        description: Seller city recorded in the source.
+        data_tests:
+          - not_null
+
+      - name: seller_state
+        description: Seller state recorded in the source.
+        data_tests:
+          - not_null
