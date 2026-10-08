@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: mart_olist_category_revenue
+    description: >
+      Delivered-item revenue aggregated by original product category.
+      One row per source category, including a NULL category group.
+      Portuguese and English category values are preserved without
+      inventing translations. Distinct delivered-order counts are
+      non-additive across categories.
+
+    columns:
+      - name: product_category_name
+        description: >
+          Original Portuguese product category. NULL represents
+          products with no source category.
+
+      - name: product_category_name_english
+        description: >
+          English translation when available; otherwise NULL.
+
+      - name: category_translation_status
+        description: >
+          Translation classification inherited from dim_product.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - translated
+                  - missing_source_category
+                  - unmatched_translation
+
+      - name: delivered_item_rows
+        description: Number of delivered item records in the category.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: distinct_delivered_orders
+        description: >
+          Distinct delivered orders containing items from this category.
+          Non-additive across categories.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: gross_merchandise_revenue
+        description: Delivered merchandise value excluding freight.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: freight_value
+        description: Delivered freight value.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: gross_order_value
+        description: Delivered merchandise value plus freight.
+        data_tests:
+          - not_null
+          - nonnegative
