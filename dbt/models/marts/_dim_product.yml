@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: dim_product
+    description: >
+      Governed Olist product dimension at one row per product_id.
+      Retains source product attributes and exposes English category
+      translations with explicit missing and unmatched statuses.
+
+    columns:
+      - name: product_id
+        description: Unique Olist product business key.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_olist__products')
+                field: product_id
+
+      - name: product_category_name
+        description: Original Portuguese product category, where supplied.
+
+      - name: product_category_name_english
+        description: English category name when a translation is available.
+
+      - name: category_translation_status
+        description: >
+          Classification of source category and English translation availability.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - translated
+                  - missing_source_category
+                  - unmatched_translation
+                  - missing_english_translation
+
+      - name: product_name_length
+        description: Source product name length.
+
+      - name: product_description_length
+        description: Source product description length.
+
+      - name: product_photos_quantity
+        description: Number of product photos recorded in the source.
+
+      - name: product_weight_g
+        description: Product weight in grams.
+
+      - name: product_length_cm
+        description: Product length in centimeters.
+
+      - name: product_height_cm
+        description: Product height in centimeters.
+
+      - name: product_width_cm
+        description: Product width in centimeters.
