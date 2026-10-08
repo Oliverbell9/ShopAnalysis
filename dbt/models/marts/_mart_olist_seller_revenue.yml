@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: mart_olist_seller_revenue
+    description: >
+      Delivered-item revenue aggregated to one row per active seller.
+      Merchandise revenue excludes freight. Freight and gross order
+      value are reported separately. Distinct delivered orders are
+      non-additive across sellers because an order can contain items
+      from multiple sellers.
+
+    columns:
+      - name: seller_id
+        description: Unique seller identifier and reporting grain.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: seller_city
+        description: Seller city from dim_seller.
+        data_tests:
+          - not_null
+
+      - name: seller_state
+        description: Seller state from dim_seller.
+        data_tests:
+          - not_null
+
+      - name: seller_zip_code_prefix
+        description: Seller ZIP code prefix from dim_seller.
+        data_tests:
+          - not_null
+
+      - name: delivered_item_rows
+        description: Number of delivered order-item rows.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: distinct_delivered_orders
+        description: >
+          Distinct delivered orders for this seller.
+          Not additive across sellers.
+        data_tests:
+          - not_null
+          - nonnegative
+
+      - name: gross_merchandise_revenue
+        description: Delivered merchandise value excluding freight.
+        data_tests:
+          - not_null
+
+      - name: freight_value
+        description: Freight associated with delivered items.
+        data_tests:
+          - not_null
+
+      - name: gross_order_value
+        description: Delivered merchandise value plus freight.
+        data_tests:
+          - not_null
