@@ -104,3 +104,68 @@ models:
           - accepted_values:
               arguments:
                 values: [true, false]
+
+  - name: dim_customer
+    description: >
+      Type 2 slowly changing customer dimension at the persistent
+      customer_unique_id grain. Geography changes are versioned as chronological
+      episodes using source order purchase timestamps. Repeated returns to a
+      previously observed geography create a new historical version rather than
+      collapsing prior episodes.
+
+    columns:
+      - name: customer_sk
+        description: >
+          Deterministic surrogate key derived from customer_unique_id and
+          customer_version.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_unique_id
+        description: Persistent Olist customer business key.
+        data_tests:
+          - not_null
+
+      - name: customer_version
+        description: >
+          Chronological SCD2 version number beginning at 1 for each persistent
+          customer.
+        data_tests:
+          - not_null
+
+      - name: customer_zip_code_prefix
+        description: ZIP-code prefix observed for this customer geography episode.
+
+      - name: customer_city
+        description: City observed for this customer geography episode.
+
+      - name: customer_state
+        description: State observed for this customer geography episode.
+
+      - name: valid_from
+        description: >
+          Inclusive lower boundary of the SCD2 version, based on the first
+          source order purchase timestamp observed in this geography episode.
+        data_tests:
+          - not_null
+
+      - name: valid_to
+        description: >
+          Exclusive upper boundary of the SCD2 version. Null identifies the
+          current/latest observed version.
+
+      - name: is_current
+        description: True only for the latest observed version of each customer.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+
+      - name: orders_in_version
+        description: >
+          Number of source orders represented by this historical geography
+          episode.
+        data_tests:
+          - not_null
