@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: fct_olist_order_items
+    description: >
+      Governed Olist order-item fact at the composite grain
+      (order_id, order_item_id). Preserves item-level merchandise
+      and freight values and joins to the governed order fact.
+      Order-level payment amounts are deliberately excluded.
+
+    columns:
+      - name: order_id
+        description: Source order identifier linking items to the order fact.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_olist_orders')
+                field: order_id
+
+      - name: order_item_id
+        description: Item sequence identifier within an order.
+        data_tests:
+          - not_null
+
+      - name: product_id
+        description: Product business key.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_id
+
+      - name: seller_id
+        description: Seller business key.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_seller')
+                field: seller_id
+
+      - name: order_purchased_at
+        description: Purchase timestamp inherited from the governed order fact.
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: Order lifecycle status inherited from the governed order fact.
+        data_tests:
+          - not_null
+
+      - name: is_delivered
+        description: True when the order status is delivered.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+
+      - name: shipping_limit_at
+        description: Source item shipping deadline.
+
+      - name: merchandise_value
+        description: Source item price, excluding freight.
+        data_tests:
+          - nonnegative
+
+      - name: freight_value
+        description: Source item freight amount.
+        data_tests:
+          - nonnegative
+
+      - name: item_gross_value
+        description: Merchandise value plus freight for the item.
+        data_tests:
+          - nonnegative
