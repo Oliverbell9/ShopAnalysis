@@ -1,0 +1,8 @@
+shopanalysis:
+  target: ci
+
+  outputs:
+    ci:
+      type: duckdb
+      path: ../data/shopanalysis_ci.duckdb
+      threads: 4

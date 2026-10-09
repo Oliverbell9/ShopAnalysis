@@ -1,4 +1,4 @@
-name: ShopAnalysis Static CI
+name: ShopAnalysis Static and Synthetic CI
 
 on:
   push:
@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  static-validation:
-    name: Python and dbt static validation
+  validation:
+    name: Python, dbt, and synthetic data validation
     runs-on: ubuntu-latest
 
     steps:
@@ -67,6 +67,30 @@ jobs:
         run: |
           dbt parse --no-partial-parse --profiles-dir .
 
-      - name: Report static validation success
+      - name: Generate isolated synthetic RAW database
         run: |
-          echo "ShopAnalysis static validation completed successfully."
+          python data_gen/generate_synthetic_raw.py \
+            --database data/shopanalysis_ci.duckdb
+
+      - name: Build synthetic dbt models
+        working-directory: dbt
+        run: |
+          dbt run \
+            --profiles-dir ./ci_profiles \
+            --target ci \
+            --no-partial-parse
+
+      - name: Test synthetic dbt models
+        working-directory: dbt
+        run: |
+          dbt test \
+            --profiles-dir ./ci_profiles \
+            --target ci \
+            --exclude \
+              assert_dim_customer_scd2_controls \
+              assert_fct_olist_orders_delivered_metric_controls \
+            --no-partial-parse
+
+      - name: Report validation success
+        run: |
+          echo "ShopAnalysis static and synthetic CI completed successfully."
