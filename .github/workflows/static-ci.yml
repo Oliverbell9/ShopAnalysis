@@ -1,0 +1,72 @@
+name: ShopAnalysis Static CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-validation:
+    name: Python and dbt static validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install dbt dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            dbt-core==1.12.0 \
+            dbt-duckdb==1.11.0
+
+      - name: Validate Python syntax
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          roots = [
+              Path("ingestion"),
+              Path("data_gen"),
+              Path("analytics"),
+              Path("orchestration"),
+          ]
+
+          files = sorted(
+              path
+              for root in roots
+              if root.exists()
+              for path in root.rglob("*.py")
+          )
+
+          if not files:
+              raise SystemExit("FAIL: No Python files discovered")
+
+          for path in files:
+              ast.parse(
+                  path.read_text(encoding="utf-8-sig"),
+                  filename=str(path),
+              )
+              print(f"PASS: {path}")
+
+          print(f"Python syntax validation passed: {len(files)} files")
+          PY
+
+      - name: Parse dbt project
+        working-directory: dbt
+        run: |
+          dbt parse --no-partial-parse --profiles-dir .
+
+      - name: Report static validation success
+        run: |
+          echo "ShopAnalysis static validation completed successfully."
