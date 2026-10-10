@@ -22,6 +22,7 @@ from pathlib import Path
 import duckdb
 import pyarrow.parquet as pq
 from dotenv import load_dotenv
+from observability.ingestion_result import RawIngestionResult
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PARQUET_ROOT = PROJECT_ROOT / "data" / "parquet" / "olist"
@@ -66,12 +67,14 @@ def resolve_database_path() -> Path:
     return PROJECT_ROOT / configured
 
 
-def discover_files() -> list[tuple[str, Path]]:
+def discover_files(parquet_root: Path | None = None) -> list[tuple[str, Path]]:
     """Discover exactly one Parquet file for every expected Olist entity."""
-    if not PARQUET_ROOT.is_dir():
-        raise RuntimeError(f"Parquet landing directory not found: {PARQUET_ROOT}")
+    root = PARQUET_ROOT if parquet_root is None else Path(parquet_root)
 
-    discovered = sorted(PARQUET_ROOT.glob("*.parquet"))
+    if not root.is_dir():
+        raise RuntimeError(f"Parquet landing directory not found: {root}")
+
+    discovered = sorted(root.glob("*.parquet"))
 
     if len(discovered) != len(EXPECTED_ENTITIES):
         raise RuntimeError(
@@ -142,14 +145,28 @@ def quote_sql_string(value: str) -> str:
     return value.replace("'", "''")
 
 
-def main() -> None:
-    """Load and reconcile all Olist entities into DuckDB RAW."""
+def main(
+    database_path: Path | None = None,
+    parquet_root: Path | None = None,
+    commit_tracker: "CommitTracker | None" = None,
+) -> RawIngestionResult:
+    """Load and reconcile Olist entities and return committed-load metadata."""
+    if commit_tracker is not None:
+        from observability.commit_state import CommitTracker
+
+        if not isinstance(commit_tracker, CommitTracker):
+            raise TypeError("commit_tracker must be a CommitTracker instance")
+
     load_dotenv(PROJECT_ROOT / ".env")
 
-    database_path = resolve_database_path()
+    database_path = (
+        resolve_database_path()
+        if database_path is None
+        else Path(database_path).resolve()
+    )
     database_path.parent.mkdir(parents=True, exist_ok=True)
 
-    files = discover_files()
+    files = discover_files(parquet_root)
 
     validated: list[tuple[str, Path, int, str]] = []
 
@@ -213,10 +230,25 @@ def main() -> None:
 
                 results.append((entity, source_rows, target_rows))
 
+            if commit_tracker is not None:
+                commit_tracker.uncertain()
+
             connection.execute("COMMIT")
 
+            if commit_tracker is not None:
+                commit_tracker.committed()
+
         except Exception:
-            connection.execute("ROLLBACK")
+            if commit_tracker is None or (
+                commit_tracker.state.value != "COMMITTED"
+            ):
+                try:
+                    connection.execute("ROLLBACK")
+                except Exception:
+                    pass
+                else:
+                    if commit_tracker is not None:
+                        commit_tracker.rolled_back()
             raise
 
     finally:
@@ -241,6 +273,14 @@ def main() -> None:
             f"{status}"
         )
 
+    return RawIngestionResult(
+        database_path=database_path,
+        batch_id=common_batch_id,
+        source_rows={
+            f"olist_{entity}": source_rows
+            for entity, source_rows, _ in results
+        },
+    )
 
 if __name__ == "__main__":
     main()
