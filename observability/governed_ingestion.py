@@ -15,6 +15,7 @@ from observability.ingestion_config import (
     EXPECTED_RAW_TABLES,
     PIPELINE_NAME,
     STAGE_NAME,
+    validate_ingestion_identity,
 )
 from observability.ingestion_evidence import validate_ingestion_evidence
 from observability.ingestion_result import RawIngestionResult
@@ -49,6 +50,8 @@ def execute_governed_ingestion(
             "Governed Olist RAW ingestion requires a nonempty batch ID"
         )
 
+    validate_ingestion_identity(pipeline_name, stage_name)
+
     collector = AuditCollector(audit_database)
 
     # Verify audit write access before executing the RAW action.
@@ -71,11 +74,6 @@ def execute_governed_ingestion(
                 "RAW action returned without a confirmed COMMIT. "
                 f"Observed state: {tracker.state.value}. "
                 "Audit remains pending investigation."
-            )
-
-        if pipeline_name != PIPELINE_NAME or stage_name != STAGE_NAME:
-            raise GovernedIngestionError(
-                "Governed Olist RAW ingestion identity mismatch"
             )
 
         if not isinstance(result, RawIngestionResult):
