@@ -23,6 +23,9 @@ import duckdb
 import pyarrow.parquet as pq
 from dotenv import load_dotenv
 from observability.ingestion_result import RawIngestionResult
+from observability.commit_state import CommitTracker
+
+_GOVERNANCE_TOKEN = object()
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PARQUET_ROOT = PROJECT_ROOT / "data" / "parquet" / "olist"
@@ -124,7 +127,11 @@ def validate_parquet(path: Path) -> tuple[int, str]:
 
     batch_table = pq.read_table(path, columns=["_batch_id"])
     batch_ids = set(batch_table.column("_batch_id").to_pylist())
-    batch_ids.discard(None)
+
+    if None in batch_ids:
+        raise RuntimeError(
+            f"{path.name}: null batch ID detected"
+        )
 
     if len(batch_ids) != 1:
         raise RuntimeError(
@@ -148,14 +155,19 @@ def quote_sql_string(value: str) -> str:
 def main(
     database_path: Path | None = None,
     parquet_root: Path | None = None,
-    commit_tracker: "CommitTracker | None" = None,
+    commit_tracker: CommitTracker | None = None,
+    *,
+    _governance_token: object | None = None,
 ) -> RawIngestionResult:
-    """Load and reconcile Olist entities and return committed-load metadata."""
-    if commit_tracker is not None:
-        from observability.commit_state import CommitTracker
-
-        if not isinstance(commit_tracker, CommitTracker):
-            raise TypeError("commit_tracker must be a CommitTracker instance")
+    """Load RAW only when authorized by governed ingestion."""
+    if _governance_token is not _GOVERNANCE_TOKEN:
+        raise PermissionError(
+            "RAW ingestion requires governed execution authorization"
+        )
+    if not isinstance(commit_tracker, CommitTracker):
+        raise TypeError(
+            "Governed RAW ingestion requires a valid CommitTracker"
+        )
 
     load_dotenv(PROJECT_ROOT / ".env")
 

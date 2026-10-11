@@ -128,6 +128,7 @@ def execute_with_failure(
                 database_path=database,
                 parquet_root=parquet_root,
                 commit_tracker=tracker,
+                _governance_token=loader._GOVERNANCE_TOKEN,
             )
 
     assert len(connections) == 1
@@ -238,3 +239,85 @@ def test_loader_postcommit_exception_preserves_unknown(
 
     finally:
         connection.close()
+
+
+
+def test_loader_pretransaction_failure_preserves_not_committed(
+    raw_loader_fixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database, parquet_root, _ = raw_loader_fixture
+
+    original_connect = duckdb.connect
+    tracker = CommitTracker()
+
+    class InjectedPretransactionFailure(RuntimeError):
+        pass
+
+    class PretransactionConnectionProxy:
+        def __init__(self, connection):
+            self.connection = connection
+            self.begin_attempts = 0
+            self.commit_attempts = 0
+            self.rollback_attempts = 0
+
+        def execute(self, query, parameters=None):
+            sql = query.strip().upper()
+
+            if sql.startswith("CREATE SCHEMA"):
+                raise InjectedPretransactionFailure(
+                    "INJECTED_PRETRANSACTION_FAILURE"
+                )
+
+            if sql == "BEGIN TRANSACTION":
+                self.begin_attempts += 1
+
+            if sql == "COMMIT":
+                self.commit_attempts += 1
+
+            if sql == "ROLLBACK":
+                self.rollback_attempts += 1
+
+            if parameters is None:
+                return self.connection.execute(query)
+
+            return self.connection.execute(query, parameters)
+
+        def close(self):
+            return self.connection.close()
+
+    connections = []
+
+    def injected_connect(*args, **kwargs):
+        proxy = PretransactionConnectionProxy(
+            original_connect(*args, **kwargs)
+        )
+        connections.append(proxy)
+        return proxy
+
+    monkeypatch.setattr(
+        loader.duckdb,
+        "connect",
+        injected_connect,
+    )
+
+    with pytest.raises(
+        InjectedPretransactionFailure,
+        match="INJECTED_PRETRANSACTION_FAILURE",
+    ):
+        loader.main(
+            database_path=database,
+            parquet_root=parquet_root,
+            commit_tracker=tracker,
+            _governance_token=loader._GOVERNANCE_TOKEN,
+        )
+
+    assert len(connections) == 1
+
+    proxy = connections[0]
+
+    assert proxy.begin_attempts == 0
+    assert proxy.commit_attempts == 0
+    assert proxy.rollback_attempts == 0
+
+    assert tracker.state == CommitState.NOT_COMMITTED

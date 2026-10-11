@@ -545,6 +545,7 @@ Project documentation is maintained under `docs/`.
 Key locations include:
 
 - Project charter: `docs/charter.md`
+- Governed RAW ingestion: [Execution contract](docs/governed_raw_ingestion.md)
 - Architecture decisions: `docs/adr/`
 - Architecture documentation: `docs/architecture/`
 - Source contracts: `docs/source_contracts/`
