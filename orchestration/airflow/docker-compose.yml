@@ -1,0 +1,98 @@
+name: shopanalysis-airflow
+
+x-airflow-common: &airflow-common
+  image: shopanalysis-airflow:3.3.2-dev
+  environment: &airflow-environment
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__PARALLELISM: "4"
+    AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: "4"
+    AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: "1"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_SQL_ALCHEMY_CONN:?Set AIRFLOW_SQL_ALCHEMY_CONN}
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+    AIRFLOW__API__BASE_URL: http://airflow-api-server:8080
+    AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "30"
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?Set AIRFLOW_JWT_SECRET}
+    DBT_PROFILES_DIR: /opt/airflow/config
+    PYTHONPATH: /opt/airflow/shopanalysis
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/auth/simple_auth_manager_passwords.json
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - ./config:/opt/airflow/config:ro
+    - ../../dbt:/opt/airflow/shopanalysis/dbt:ro
+    - ../../ingestion:/opt/airflow/shopanalysis/ingestion:ro
+    - ../../observability:/opt/airflow/shopanalysis/observability:ro
+    - ../../data/airflow_dev:/opt/airflow/workspace
+    - ../../data/raw/olist:/opt/airflow/sources/olist:ro
+    - ../../data/manifests:/opt/airflow/manifests:ro
+  depends_on:
+    postgres:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD:?Set AIRFLOW_POSTGRES_PASSWORD}
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    command: db migrate
+    restart: "no"
+
+  airflow-api-server:
+    <<: *airflow-common
+    command: api-server
+    volumes:
+      - ./dags:/opt/airflow/dags:ro
+      - ./config:/opt/airflow/config:ro
+      - ../../dbt:/opt/airflow/shopanalysis/dbt:ro
+      - ../../ingestion:/opt/airflow/shopanalysis/ingestion:ro
+      - ../../observability:/opt/airflow/shopanalysis/observability:ro
+      - ../../data/airflow_dev:/opt/airflow/workspace
+      - ../../data/raw/olist:/opt/airflow/sources/olist:ro
+      - ../../data/manifests:/opt/airflow/manifests:ro
+      - airflow_auth_data:/opt/airflow/auth
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow_postgres_data:
+    name: shopanalysis_airflow_postgres_data
+  airflow_auth_data:
+    external: true
+    name: shopanalysis_airflow_auth_data

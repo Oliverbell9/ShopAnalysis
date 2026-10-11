@@ -1,0 +1,7 @@
+shopanalysis:
+  target: airflow
+  outputs:
+    airflow:
+      type: duckdb
+      path: /opt/airflow/workspace/shopanalysis_airflow.duckdb
+      threads: 4

@@ -99,3 +99,10 @@ dist/
 
 # Local personal notes
 Codes.txt
+
+# Airflow local configuration and development artifacts
+/orchestration/airflow/.env
+/data/airflow_dev/
+
+# User-specific dbt profile
+/dbt/ci_profiles/.user.yml
