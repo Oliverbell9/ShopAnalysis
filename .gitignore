@@ -106,3 +106,6 @@ Codes.txt
 
 # User-specific dbt profile
 /dbt/ci_profiles/.user.yml
+
+# Locally generated public aggregate exports
+/data/public_aggregate_exports/
