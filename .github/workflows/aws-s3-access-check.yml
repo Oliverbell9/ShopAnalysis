@@ -30,9 +30,6 @@ jobs:
       # TEMPORARY: print only the two OIDC claims used by the AWS trust policy.
       - name: Diagnose GitHub OIDC audience and subject
         shell: bash
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
