@@ -1,0 +1,66 @@
+name: AWS S3 Access Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "GitHub Environment to test"
+        required: true
+        type: choice
+        options:
+          - dev
+          - ci
+          - prod
+
+permissions:
+  contents: read
+
+jobs:
+  verify-s3-access:
+    name: Verify S3 Access
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Configure AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::777311273388:role/shopanalysis-${{ inputs.environment }}-s3-role
+          aws-region: us-east-2
+          role-session-name: shopanalysis-s3-access-check
+
+      - name: Verify AWS identity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws sts get-caller-identity \
+            --query '{Account:Account,Arn:Arn}' \
+            --output json
+
+      - name: Verify environment S3 listing
+        shell: bash
+        env:
+          SHOPANALYSIS_ENV: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+
+          case "$SHOPANALYSIS_ENV" in
+            dev|ci|prod) ;;
+            *)
+              echo "Invalid environment."
+              exit 1
+              ;;
+          esac
+
+          aws s3api list-objects-v2 \
+            --bucket shopanalysis-777311273388-us-east-2 \
+            --prefix "${SHOPANALYSIS_ENV}/" \
+            --max-items 10 \
+            --query '{KeyCount:KeyCount,IsTruncated:IsTruncated}' \
+            --output json
