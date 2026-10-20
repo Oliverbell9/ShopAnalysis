@@ -1,5 +1,5 @@
 locals {
-  github_repository = "Oliverbell9/ShopAnalysis"
+  github_repository = "Oliverbell9@92740323/ShopAnalysis@1401892624"
 
   environments = {
     dev = {
