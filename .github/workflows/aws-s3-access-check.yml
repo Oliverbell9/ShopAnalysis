@@ -1,0 +1,95 @@
+name: AWS S3 Access Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "GitHub Environment to test"
+        required: true
+        type: choice
+        options:
+          - dev
+          - ci
+          - prod
+
+permissions:
+  contents: read
+
+jobs:
+  verify-s3-access:
+    name: Verify S3 Access
+    runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      # TEMPORARY: print only the two OIDC claims used by the AWS trust policy.
+      - name: Diagnose GitHub OIDC audience and subject
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          request_url = os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
+          request_token = os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]
+          query = urllib.parse.urlencode({"audience": "sts.amazonaws.com"})
+          separator = "&" if "?" in request_url else "?"
+          request = urllib.request.Request(
+              request_url + separator + query,
+              headers={"Authorization": "Bearer " + request_token},
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              token = json.load(response)["value"]
+          payload = token.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+          print("OIDC aud:", claims.get("aud"))
+          print("OIDC sub:", claims.get("sub"))
+          PY
+
+      - name: Configure AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::777311273388:role/shopanalysis-${{ inputs.environment }}-s3-role
+          aws-region: us-east-2
+          role-session-name: shopanalysis-s3-access-check
+
+      - name: Verify AWS identity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws sts get-caller-identity \
+            --query '{Account:Account,Arn:Arn}' \
+            --output json
+
+      - name: Verify environment S3 listing
+        shell: bash
+        env:
+          SHOPANALYSIS_ENV: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+
+          case "$SHOPANALYSIS_ENV" in
+            dev|ci|prod) ;;
+            *)
+              echo "Invalid environment."
+              exit 1
+              ;;
+          esac
+
+          aws s3api list-objects-v2 \
+            --bucket shopanalysis-777311273388-us-east-2 \
+            --prefix "${SHOPANALYSIS_ENV}/" \
+            --max-items 10 \
+            --query '{KeyCount:KeyCount,IsTruncated:IsTruncated}' \
+            --output json
