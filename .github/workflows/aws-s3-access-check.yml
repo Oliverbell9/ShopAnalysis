@@ -27,35 +27,6 @@ jobs:
       id-token: write
 
     steps:
-      # TEMPORARY: print only the two OIDC claims used by the AWS trust policy.
-      - name: Diagnose GitHub OIDC audience and subject
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import base64
-          import json
-          import os
-          import urllib.parse
-          import urllib.request
-
-          request_url = os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
-          request_token = os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]
-          query = urllib.parse.urlencode({"audience": "sts.amazonaws.com"})
-          separator = "&" if "?" in request_url else "?"
-          request = urllib.request.Request(
-              request_url + separator + query,
-              headers={"Authorization": "Bearer " + request_token},
-          )
-          with urllib.request.urlopen(request, timeout=20) as response:
-              token = json.load(response)["value"]
-          payload = token.split(".")[1]
-          payload += "=" * (-len(payload) % 4)
-          claims = json.loads(base64.urlsafe_b64decode(payload))
-          print("OIDC aud:", claims.get("aud"))
-          print("OIDC sub:", claims.get("sub"))
-          PY
-
       - name: Configure AWS credentials through OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
