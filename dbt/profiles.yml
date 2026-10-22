@@ -4,5 +4,5 @@ shopanalysis:
   outputs:
     dev:
       type: duckdb
-      path: ../data/shopanalysis.duckdb
+      path: "{{ env_var('SHOPANALYSIS_DUCKDB_PATH', '../data/shopanalysis.duckdb') }}"
       threads: 4
