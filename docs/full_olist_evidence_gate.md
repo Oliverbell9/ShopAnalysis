@@ -23,3 +23,15 @@ Run the existing full-data dbt assertions separately, using the appropriate auth
 A delivered order with non-NULL merchandise, freight and gross amounts may legitimately have no matching payment record in the loaded source. The gate reports `classified_missing_payments` separately and does not fail **solely** when `payment_value`, `payment_record_count` and `payment_type_count` are all NULL and `reconciliation_status = 'missing_payment'`. An unclassified NULL payment or an inconsistent `missing_payment` status fails. This is a classification rule, **not** proof that every upstream payment is complete; independently verify raw payment rows and source provenance before interpreting exceptions.
 
 For the investigated order `bfbd0f9bdef84302105ad712db648a6c`, the local operator reported zero matching rows in raw, staging and intermediate payment tables, while the mart retained 134.97 merchandise, 8.49 freight, 143.46 gross and a NULL payment. The findings are user-reported local diagnostic evidence, not a GitHub CI full-data result.
+
+## RAW source-completeness check (separate from mart control)
+
+Run the following **read-only** check against the existing full local database:
+
+```powershell
+python analytics/validate_raw_olist.py --db ".\\data\\shopanalysis.duckdb" --manifest ".\\data\\manifests\\olist_manifest.json"
+```
+
+The check compares the nine RAW table row counts against the recorded `data_rows` in the repository's Olist CSV manifest, checks four RAW lineage fields for NULLs, and requires one common non-NULL batch ID across all nine tables. This is **manifest-to-RAW cardinality and lineage-field evidence**, not a cryptographic source-integrity check. The script does **not** open or hash original CSV files, inspect upstream provider revisions, validate every source row's contents, or prove transformations from RAW to marts. The historical manifest is a reference; a matching count alone cannot prove data equivalence. Preserve output privately and investigate any mismatch rather than updating historical expectations to force a pass.
+
+Synthetic CI tests the gate's pure validation rules; it does not run the full-data check.
