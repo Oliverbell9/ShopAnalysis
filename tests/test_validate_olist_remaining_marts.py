@@ -21,7 +21,7 @@ def test_missing_database_does_not_create_file(tmp_path):
 
 
 def test_query_coverage():
-    assert len(QUERIES) == 13
+    assert len(QUERIES) == 14
     assert all(query.strip().lower().startswith("select") or
                query.strip().lower().startswith("with")
                for query in QUERIES.values())
