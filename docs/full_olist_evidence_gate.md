@@ -55,3 +55,13 @@ python -m analytics.validate_olist_order_lineage --db ".\\data\\shopanalysis.duc
 ```
 
 This compares order-ID coverage and uniqueness from RAW orders through staging, enriched intermediate, reconciliation intermediate, and the order fact; verifies selected order fact monetary/status fields against intermediate outputs; and independently recomputes delivered monthly counts and money from the fact to compare with the monthly revenue mart. A mismatch is an evidence failure requiring investigation; it is not permission to change source records. The checker is read-only. It does **not** certify complete field-level lineage, other marts, acquisition authenticity, access controls or cloud deployment. Synthetic CI runs isolated Python assessment tests; the full dataset must be checked locally.
+
+## Remaining Olist marts and dimensions (read-only)
+
+From the project root, after building the full Olist dbt models:
+
+```powershell
+python -m analytics.validate_olist_remaining_marts --db ".\\data\\shopanalysis.duckdb"
+```
+
+This checks order-item composite keys and selected item fields, product/seller dimension keys, customer version/current-key consistency, and independently recomputes customer, seller and category delivered-revenue aggregates from the facts. Results are exceptions, with zero required for PASS. The checks are **bounded**: they do not certify all SCD2 intervals, all dimension attributes, complete field-level provenance, RBAC or cloud controls. Full Olist verification is local; synthetic CI only tests the Python assessment and guard.
