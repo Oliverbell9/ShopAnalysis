@@ -13,7 +13,7 @@ from pathlib import Path
 
 from analytics.validate_raw_olist import ENTITY_TABLES, expected_rows
 
-_SHA256 = re.compile(r"[0-9a-f]{64}\\Z")
+_SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def validate_manifest(manifest):
