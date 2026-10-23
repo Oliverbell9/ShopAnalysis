@@ -54,3 +54,24 @@ def test_missing_or_extra_csv_fails(tmp_path):
 def test_malformed_manifest_rejected(tmp_path, field):
     with pytest.raises(ValueError):
         validate_manifest(fixture_manifest(tmp_path, corrupt=field))
+
+
+def test_direct_script_invocation_imports_without_repository_pythonpath():
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parents[1] / "analytics" / "validate_olist_csv_integrity.py"
+    env = os.environ.copy()
+    env.pop("PYTHONPATH", None)
+    result = subprocess.run(
+        [sys.executable, "-I", str(script), "--help"],
+        cwd=script.parent,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--raw-root" in result.stdout
