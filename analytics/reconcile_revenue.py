@@ -57,7 +57,7 @@ def inspect_database(path: Path):
                FROM main_marts.fct_olist_orders"""
         )
         names = [item[0] for item in cursor.description]
-        return summarize_rows(dict(zip(names, row)) for row in cursor.fetchall())
+        return summarize_rows([dict(zip(names, row)) for row in cursor.fetchall()])
     finally:
         con.close()
 
