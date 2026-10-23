@@ -12,6 +12,9 @@ def valid_metrics():
         "delivered_orders": 1,
         "non_delivered_orders": 1,
         "delivered_null_money": 0,
+        "unclassified_missing_payments": 0,
+        "inconsistent_missing_payment_status": 0,
+        "classified_missing_payments": 0,
         "delivered_row_mismatches": 0,
         "merchandise": Decimal("10.00"),
         "freight": Decimal("2.00"),
@@ -57,3 +60,21 @@ def test_documented_controls_can_match():
     m["total_orders"] = m["distinct_order_ids"] = m["delivered_orders"]
     m["non_delivered_orders"] = 0
     assert assess(m, compare_documented=True) == []
+
+
+def test_classified_missing_payment_is_reported_not_failed():
+    m = valid_metrics()
+    m["classified_missing_payments"] = 1
+    assert assess(m) == []
+
+
+def test_unclassified_missing_payment_fails():
+    m = valid_metrics()
+    m["unclassified_missing_payments"] = 1
+    assert "Delivered missing payments without missing_payment classification" in assess(m)
+
+
+def test_inconsistent_missing_payment_status_fails():
+    m = valid_metrics()
+    m["inconsistent_missing_payment_status"] = 1
+    assert "Delivered missing_payment status has non-NULL payment or payment counts" in assess(m)
