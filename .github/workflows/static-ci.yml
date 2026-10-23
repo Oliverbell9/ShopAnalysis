@@ -31,36 +31,7 @@ jobs:
 
       - name: Validate Python syntax
         run: |
-          python - <<'PY'
-          import ast
-          from pathlib import Path
-
-          roots = [
-              Path("ingestion"),
-              Path("data_gen"),
-              Path("analytics"),
-              Path("orchestration"),
-          ]
-
-          files = sorted(
-              path
-              for root in roots
-              if root.exists()
-              for path in root.rglob("*.py")
-          )
-
-          if not files:
-              raise SystemExit("FAIL: No Python files discovered")
-
-          for path in files:
-              ast.parse(
-                  path.read_text(encoding="utf-8-sig"),
-                  filename=str(path),
-              )
-              print(f"PASS: {path}")
-
-          print(f"Python syntax validation passed: {len(files)} files")
-          PY
+          python scripts/validate_python_syntax.py
 
       - name: Parse dbt project
         working-directory: dbt
@@ -80,7 +51,8 @@ jobs:
             --target ci \
             --no-partial-parse
 
-      - name: Test synthetic dbt models
+      # Full-dataset cardinality/amount assertions are not valid for the seven-order synthetic fixture.
+      # Run those two separately against verified full Olist data (docs/validation.md).\n      - name: Test synthetic dbt models
         working-directory: dbt
         run: |
           dbt test \

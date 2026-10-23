@@ -156,7 +156,7 @@ Synthetic sources will contain known ground truth so that reconciliation and dat
 The planned cloud landing convention is:
 
 ```text
-raw/<source>/<entity>/ingest_date=YYYY-MM-DD/part-*.parquet
+raw/<source>/<entity>/ingest_date=YYYY-MM-DD/batch_id=<batch_id>/part-00000.parquet
 ```
 
 Raw data is treated as immutable.
@@ -559,3 +559,7 @@ Key locations include:
 ## License
 
 A license has not yet been selected.
+
+## Reproducible validation
+
+See [Local validation and CI evidence](docs/validation.md) for the synthetic CI commands, coverage boundaries, and full-dataset test exclusions. Historical batch protection remains an implementation requirement under [ADR-001](docs/adr/ADR-001-raw-file-format-partitioning.md) (Proposed).
