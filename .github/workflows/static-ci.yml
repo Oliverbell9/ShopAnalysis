@@ -48,7 +48,8 @@ jobs:
             tests/test_reconcile_revenue.py \
             tests/test_benchmark_local.py \
             tests/test_validate_full_olist.py \
-            tests/test_validate_raw_olist.py
+            tests/test_validate_raw_olist.py \
+            tests/test_validate_olist_csv_integrity.py
 
       - name: Parse dbt project
         working-directory: dbt

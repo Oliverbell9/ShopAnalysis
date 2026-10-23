@@ -35,3 +35,13 @@ python analytics/validate_raw_olist.py --db ".\\data\\shopanalysis.duckdb" --man
 The check compares the nine RAW table row counts against the recorded `data_rows` in the repository's Olist CSV manifest, checks four RAW lineage fields for NULLs, and requires one common non-NULL batch ID across all nine tables. This is **manifest-to-RAW cardinality and lineage-field evidence**, not a cryptographic source-integrity check. The script does **not** open or hash original CSV files, inspect upstream provider revisions, validate every source row's contents, or prove transformations from RAW to marts. The historical manifest is a reference; a matching count alone cannot prove data equivalence. Preserve output privately and investigate any mismatch rather than updating historical expectations to force a pass.
 
 Synthetic CI tests the gate's pure validation rules; it does not run the full-data check.
+
+## Original CSV integrity (separate, read-only check)
+
+From the project root, after verifying that the **original** nine Olist CSV files exist under `data/raw/olist`, run:
+
+```powershell
+python analytics/validate_olist_csv_integrity.py --raw-root ".\\data\\raw\\olist" --manifest ".\\data\\manifests\\olist_manifest.json"
+```
+
+The script checks the exact nine-file inventory, byte sizes and SHA-256 fingerprints against the committed manifest. It streams the CSV bytes without rewriting files, exporting rows, or opening DuckDB. A PASS proves that the local files match the **recorded** fingerprints; it does not independently authenticate the manifest, original Kaggle acquisition, or upstream revisions. A missing local CSV is a failed/unavailable evidence check, **not** proof of data corruption. Never update the manifest merely to make a mismatch pass. Synthetic CI exercises isolated test files only.
