@@ -52,7 +52,8 @@ jobs:
             --no-partial-parse
 
       # Full-dataset cardinality/amount assertions are not valid for the seven-order synthetic fixture.
-      # Run those two separately against verified full Olist data (docs/validation.md).\n      - name: Test synthetic dbt models
+      # Run those two separately against verified full Olist data (docs/validation.md).
+      - name: Test synthetic dbt models
         working-directory: dbt
         run: |
           dbt test \
