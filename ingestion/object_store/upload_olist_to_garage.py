@@ -13,13 +13,15 @@ The script:
 2. Discovers the Olist Parquet landing files.
 3. Validates lineage and batch consistency before uploading.
 4. Uploads each entity using deterministic S3 object keys.
-5. Verifies uploaded object metadata and size.
+5. Enforces conditional object creation and SHA-256 content verification.
 6. Reports a concise PASS summary without exposing credentials.
 """
 
 from __future__ import annotations
 
 import os
+import hashlib
+from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -114,6 +116,59 @@ def discover_files() -> list[tuple[str, Path]]:
     return result
 
 
+
+def sha256_path(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def sha256_remote(s3, bucket: str, key: str) -> str:
+    response = s3.get_object(Bucket=bucket, Key=key)
+    digest = hashlib.sha256()
+    stream = response["Body"]
+    try:
+        for chunk in stream.iter_chunks(chunk_size=1024 * 1024):
+            if chunk:
+                digest.update(chunk)
+    finally:
+        stream.close()
+    return digest.hexdigest()
+
+
+def upload_protected(s3, bucket: str, key: str, path: Path, metadata: dict[str, str]) -> str:
+    """Conditional create only. Unsupported conditional writes fail closed."""
+    local_hash = sha256_path(path)
+    local_size = path.stat().st_size
+    try:
+        with path.open("rb") as stream:
+            s3.put_object(
+                Bucket=bucket, Key=key, Body=stream,
+                ContentLength=local_size,
+                ContentType="application/vnd.apache.parquet",
+                Metadata={**metadata, "sha256": local_hash},
+                IfNoneMatch="*",
+            )
+        outcome = "CREATED"
+    except ClientError as exc:
+        status = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+        code = exc.response.get("Error", {}).get("Code")
+        if status not in (409, 412) and code not in ("PreconditionFailed", "ConditionalRequestConflict"):
+            raise
+        try:
+            existing_hash = sha256_remote(s3, bucket, key)
+        except ClientError as read_exc:
+            raise RuntimeError(f"Cannot verify existing object: {key}") from read_exc
+        if existing_hash != local_hash:
+            raise RuntimeError(f"PROTECTED_BATCH_CONFLICT: {key}")
+        outcome = "IDENTICAL_REPLAY"
+    if sha256_remote(s3, bucket, key) != local_hash:
+        raise RuntimeError(f"REMOTE_CONTENT_MISMATCH: {key}")
+    return outcome
+
+
 def main() -> None:
     """Validate and upload the Olist Parquet landing to Garage."""
     load_dotenv(PROJECT_ROOT / ".env")
@@ -158,29 +213,13 @@ def main() -> None:
 
         local_size = path.stat().st_size
 
-        s3.upload_file(
-            str(path),
-            bucket,
-            object_key,
-            ExtraArgs={
-                "ContentType": "application/vnd.apache.parquet",
-                "Metadata": {
-                    "source": "olist",
-                    "entity": entity,
-                    "batch-id": batch_id,
-                    "ingest-date": ingest_date,
-                },
-            },
+        outcome = upload_protected(
+            s3, bucket, object_key, path,
+            {"source": "olist", "entity": entity,
+             "batch-id": batch_id, "ingest-date": ingest_date},
         )
-
-        head = s3.head_object(Bucket=bucket, Key=object_key)
-        remote_size = head["ContentLength"]
-
-        if remote_size != local_size:
-            raise RuntimeError(
-                f"{entity}: uploaded size mismatch "
-                f"(local={local_size}, remote={remote_size})"
-            )
+        remote_size = local_size
+        print(f"{outcome}: {entity} {object_key}")
 
         uploaded.append((entity, object_key, remote_size))
 
