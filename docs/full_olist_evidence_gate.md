@@ -65,3 +65,13 @@ python -m analytics.validate_olist_remaining_marts --db ".\\data\\shopanalysis.d
 ```
 
 This checks order-item composite keys and selected item fields, product/seller dimension keys, customer version/current-key consistency, and independently recomputes customer, seller and category delivered-revenue aggregates from the facts. Results are exceptions, with zero required for PASS. The checks are **bounded**: they do not certify all SCD2 intervals, all dimension attributes, complete field-level provenance, RBAC or cloud controls. Full Olist verification is local; synthetic CI only tests the Python assessment and guard.
+
+## Customer SCD Type 2 effective dating (read-only)
+
+From the repository root against an existing **full Olist** database:
+
+```powershell
+python -m analytics.validate_customer_scd2 --db ".\\data\\shopanalysis.duckdb"
+```
+
+The 12 checks cover required fields, surrogate key uniqueness and determinism, positive and sequential customer versions, valid and adjacent half-open effective intervals, current-row flags, version order counts, and historical order-to-customer surrogate-key assignments. Each query reports exception counts; zero is required for PASS. Checks are based on the currently materialized customer dimension and intermediate orders, **not** independently reconstructed source attribute-change history. They do not establish acquisition provenance, RBAC or cloud controls. CI runs isolated assessment tests; full Olist results must be obtained locally.
