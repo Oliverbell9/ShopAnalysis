@@ -33,7 +33,11 @@ def assess(metrics, *, compare_documented=False):
     if metrics["delivered_orders"] + metrics["non_delivered_orders"] != metrics["total_orders"]:
         issues.append("Delivered status partition does not cover all orders")
     if metrics["delivered_null_money"]:
-        issues.append("Delivered monetary values contain NULLs")
+        issues.append("Delivered required merchandise, freight or gross values contain NULLs")
+    if metrics["unclassified_missing_payments"]:
+        issues.append("Delivered missing payments without missing_payment classification")
+    if metrics["inconsistent_missing_payment_status"]:
+        issues.append("Delivered missing_payment status has non-NULL payment or payment counts")
     if metrics["delivered_row_mismatches"]:
         issues.append("Delivered order-level merchandise + freight != gross")
     if metrics["merchandise"] + metrics["freight"] != metrics["gross"]:
@@ -61,8 +65,28 @@ def inspect(path: Path):
                 count(*) FILTER (
                     WHERE is_delivered IS TRUE AND
                     (merchandise_value IS NULL OR freight_value IS NULL
-                     OR gross_order_value IS NULL OR payment_value IS NULL)
+                     OR gross_order_value IS NULL)
                 ) AS delivered_null_money,
+                count(*) FILTER (
+                    WHERE is_delivered IS TRUE AND payment_value IS NULL
+                      AND (reconciliation_status IS DISTINCT FROM 'missing_payment'
+                           OR payment_record_count IS NOT NULL
+                           OR payment_type_count IS NOT NULL)
+                ) AS unclassified_missing_payments,
+                count(*) FILTER (
+                    WHERE is_delivered IS TRUE
+                      AND reconciliation_status = 'missing_payment'
+                      AND (payment_value IS NOT NULL
+                           OR payment_record_count IS NOT NULL
+                           OR payment_type_count IS NOT NULL)
+                ) AS inconsistent_missing_payment_status,
+                count(*) FILTER (
+                    WHERE is_delivered IS TRUE
+                      AND payment_value IS NULL
+                      AND reconciliation_status = 'missing_payment'
+                      AND payment_record_count IS NULL
+                      AND payment_type_count IS NULL
+                ) AS classified_missing_payments,
                 count(*) FILTER (
                     WHERE is_delivered IS TRUE AND
                     (merchandise_value + freight_value != gross_order_value)
