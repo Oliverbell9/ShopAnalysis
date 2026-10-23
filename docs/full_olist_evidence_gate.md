@@ -1,6 +1,6 @@
 # Full Olist evidence gate (read-only)
 
-**Status: procedure prepared; not executed against the user's full local dataset.**
+**Status: executed by the local operator against the full Olist mart on 2026-10-22; selected financial and historical controls passed.** This is user-reported execution evidence, not a GitHub Actions full-data run.
 
 The permanent GitHub CI uses a seven-order synthetic fixture. A passing CI run is not evidence of full Olist monetary totals, completeness, or cloud controls.
 
