@@ -45,3 +45,13 @@ python analytics/validate_olist_csv_integrity.py --raw-root ".\\data\\raw\\olist
 ```
 
 The script checks the exact nine-file inventory, byte sizes and SHA-256 fingerprints against the committed manifest. It streams the CSV bytes without rewriting files, exporting rows, or opening DuckDB. A PASS proves that the local files match the **recorded** fingerprints; it does not independently authenticate the manifest, original Kaggle acquisition, or upstream revisions. A missing local CSV is a failed/unavailable evidence check, **not** proof of data corruption. Never update the manifest merely to make a mismatch pass. Synthetic CI exercises isolated test files only.
+
+## Selected RAW-to-mart order lineage (read-only)
+
+After building the **full** Olist dbt models locally, run from the project root:
+
+```powershell
+python -m analytics.validate_olist_order_lineage --db ".\\data\\shopanalysis.duckdb"
+```
+
+This compares order-ID coverage and uniqueness from RAW orders through staging, enriched intermediate, reconciliation intermediate, and the order fact; verifies selected order fact monetary/status fields against intermediate outputs; and independently recomputes delivered monthly counts and money from the fact to compare with the monthly revenue mart. A mismatch is an evidence failure requiring investigation; it is not permission to change source records. The checker is read-only. It does **not** certify complete field-level lineage, other marts, acquisition authenticity, access controls or cloud deployment. Synthetic CI runs isolated Python assessment tests; the full dataset must be checked locally.
