@@ -1,5 +1,6 @@
 """Pure regression checks for customer SCD2 evidence validation."""
 import pytest
+
 from analytics.validate_customer_scd2 import QUERIES, assess, inspect
 
 

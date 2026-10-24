@@ -7,7 +7,6 @@ from pathlib import Path
 
 import duckdb
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATABASE = (
     PROJECT_ROOT / "data" / "shopanalysis_observability.duckdb"
@@ -172,7 +171,7 @@ def main() -> None:
 
         print("OBSERVABILITY SCHEMA: PASS")
         print(f"Database: {database}")
-        print(f"Schema: audit")
+        print("Schema: audit")
         print(f"Required tables verified: {len(expected)}")
 
         for table_name in sorted(expected):

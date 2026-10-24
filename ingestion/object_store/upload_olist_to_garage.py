@@ -19,14 +19,14 @@ The script:
 
 from __future__ import annotations
 
-import os
 import hashlib
-from botocore.exceptions import ClientError
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 import boto3
 import pyarrow.parquet as pq
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

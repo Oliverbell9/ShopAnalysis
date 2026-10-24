@@ -3,6 +3,7 @@
 These checks do not establish full transformation provenance or cloud security.
 """
 from __future__ import annotations
+
 import argparse
 from pathlib import Path
 

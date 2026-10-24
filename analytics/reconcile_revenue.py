@@ -15,7 +15,7 @@ def as_money(value) -> Decimal:
     if value is None:
         return Decimal("0.00")
     if isinstance(value, float):
-        raise ValueError("Floating-point money is not accepted")
+        raise ValueError("Floating-point money is not accepted")  # noqa: TRY004 - monetary validation contract
     return Decimal(str(value))
 
 

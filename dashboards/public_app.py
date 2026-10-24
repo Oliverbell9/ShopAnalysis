@@ -164,7 +164,7 @@ def show_periods(data: dict[str, list[dict]]) -> None:
         ticktext=["2016 launch" if p == "2016 launch period" else p for p in tick_periods],
         tickangle=-30, automargin=True,
     )
-    figure.update_layout(height=470, margin=dict(b=75))
+    figure.update_layout(height=470, margin={"b": 75})
     st.caption(
         "Only selected reporting periods are displayed. "
         "The 2016 launch period combines the available 2016 months."
@@ -244,7 +244,7 @@ def show_categories(data: dict[str, list[dict]]) -> None:
         figure.update_xaxes(rangemode="tozero", range=[0, max_value * 1.20])
     figure.update_layout(
         height=max(420, min(1800, top_count * 32 + 150)),
-        margin=dict(l=180, r=90),
+        margin={"l": 180, "r": 90},
     )
     st.plotly_chart(figure, width="stretch")
     st.warning(
@@ -300,7 +300,7 @@ def show_payments(data: dict[str, list[dict]]) -> None:
         max_orders = float(non_exact["orders"].max())
         if max_orders > 0:
             detail_figure.update_xaxes(rangemode="tozero", range=[0, max_orders * 1.20])
-        detail_figure.update_layout(height=350, margin=dict(l=220, r=70))
+        detail_figure.update_layout(height=350, margin={"l": 220, "r": 70})
         st.plotly_chart(detail_figure, width="stretch")
     st.caption(
         "Selections affect only this reconciliation section. "

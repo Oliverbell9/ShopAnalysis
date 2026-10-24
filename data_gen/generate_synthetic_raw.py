@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
+
 import duckdb
 
 COLUMNS = {
@@ -112,7 +113,7 @@ def generate(path: Path) -> None:
     finally:
         try:
             con.close()
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - best-effort final connection cleanup
             pass
 
 if __name__ == '__main__':

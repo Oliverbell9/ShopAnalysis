@@ -122,14 +122,13 @@ def execute_with_failure(
         loader.duckdb,
         "connect",
         side_effect=injected_connect,
-    ):
-        with pytest.raises(expected_exception):
-            loader.main(
-                database_path=database,
-                parquet_root=parquet_root,
-                commit_tracker=tracker,
-                _governance_token=loader._GOVERNANCE_TOKEN,
-            )
+    ), pytest.raises(expected_exception):
+        loader.main(
+            database_path=database,
+            parquet_root=parquet_root,
+            commit_tracker=tracker,
+            _governance_token=loader._GOVERNANCE_TOKEN,
+        )
 
     assert len(connections) == 1
     assert connections[0].failure_injected

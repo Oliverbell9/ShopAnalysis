@@ -5,6 +5,7 @@ Validates selected transformation outputs, not complete column-level provenance.
 from __future__ import annotations
 
 import argparse
+import itertools
 from pathlib import Path
 
 LAYERS = (
@@ -38,7 +39,7 @@ def inspect(path):
             metrics[f"{layer}.duplicate_keys"] = con.execute(
                 f"select count(*) - count(distinct order_id) from {layer}"
             ).fetchone()[0]
-        for left, right in zip(LAYERS, LAYERS[1:]):
+        for left, right in itertools.pairwise(LAYERS):
             metrics[f"{left}-> {right}.missing"] = con.execute(
                 f"select count(*) from {left} l where not exists "
                 f"(select 1 from {right} r where r.order_id = l.order_id)"

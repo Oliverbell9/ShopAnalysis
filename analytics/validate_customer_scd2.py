@@ -1,5 +1,6 @@
 """Read-only customer SCD2 effective dating and historical assignment checks."""
 from __future__ import annotations
+
 import argparse
 from pathlib import Path
 

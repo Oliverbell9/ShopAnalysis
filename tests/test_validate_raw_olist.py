@@ -41,13 +41,13 @@ def test_matching_raw_evidence_passes():
 def test_mismatch_null_lineage_and_batch_mismatch_fail():
     rows = {
         "orders": record(),
-        "payments": dict(expected=10, actual=9, null_lineage=1,
-                         distinct_batches=1, batch_id="batch-2"),
+        "payments": {"expected": 10, "actual": 9, "null_lineage": 1,
+                         "distinct_batches": 1, "batch_id": "batch-2"},
     }
     assert len(assess(rows)) == 3
 
 
 def test_missing_batch_fails():
-    rows = {"orders": dict(expected=10, actual=10, null_lineage=0,
-                           distinct_batches=0, batch_id=None)}
+    rows = {"orders": {"expected": 10, "actual": 10, "null_lineage": 0,
+                           "distinct_batches": 0, "batch_id": None}}
     assert any("batch ID" in issue for issue in assess(rows))

@@ -107,7 +107,6 @@ def test_entrypoint_rejects_invalid_audit_schema(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import duckdb
-
     from test_raw_ingestion_preflight import create_entity_files
 
     parquet_root = tmp_path / "parquet"

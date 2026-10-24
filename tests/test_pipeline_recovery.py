@@ -350,14 +350,13 @@ def test_precommit_failure_rolls_back(recovery_fixture):
         AuditCollector,
         "transaction",
         injected_transaction,
+    ), pytest.raises(
+        RuntimeError,
+        match="^INJECTED_PRECOMMIT_FAILURE$",
     ):
-        with pytest.raises(
-            RuntimeError,
-            match="^INJECTED_PRECOMMIT_FAILURE$",
-        ):
-            recover_committed_pipeline(
-                **fixture["arguments"]
-            )
+        recover_committed_pipeline(
+            **fixture["arguments"]
+        )
 
     assert audit_snapshot(fixture) == before
     assert before[0][0] == "RUNNING"

@@ -97,7 +97,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from ingestion.duckdb import load_olist_raw as loader
 from observability.raw_ingestion_preflight import (
     validate_raw_ingestion_preflight,
 )
@@ -205,13 +204,10 @@ def test_preflight_accepts_consistent_nine_entity_batch(
     )
 
     assert not (tmp_path / "raw.duckdb").exists()
-import duckdb
-import pytest
 from pathlib import Path
 
-from observability.raw_ingestion_preflight import (
-    validate_raw_ingestion_preflight,
-)
+import duckdb
+import pytest
 
 
 def test_preflight_rejects_missing_audit_tables(

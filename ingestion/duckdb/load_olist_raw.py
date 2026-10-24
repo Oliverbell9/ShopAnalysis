@@ -22,8 +22,9 @@ from pathlib import Path
 import duckdb
 import pyarrow.parquet as pq
 from dotenv import load_dotenv
-from observability.ingestion_result import RawIngestionResult
+
 from observability.commit_state import CommitTracker
+from observability.ingestion_result import RawIngestionResult
 
 _GOVERNANCE_TOKEN = object()
 
@@ -256,7 +257,7 @@ def main(
             ):
                 try:
                     connection.execute("ROLLBACK")
-                except Exception:
+                except Exception:  # noqa: BLE001, S110 - preserve original error when rollback fails
                     pass
                 else:
                     if commit_tracker is not None:

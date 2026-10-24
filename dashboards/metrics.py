@@ -9,7 +9,7 @@ def money_sum(values) -> Decimal:
 def delivered_metrics(orders):
     subset = orders.loc[orders['is_delivered'].eq(True)]
     return {
-        'delivered_orders': int(len(subset)),
+        'delivered_orders': len(subset),
         'merchandise': money_sum(subset['merchandise_value']),
         'freight': money_sum(subset['freight_value']),
         'gross': money_sum(subset['gross_order_value']),
