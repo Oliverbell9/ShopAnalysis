@@ -112,7 +112,7 @@ def validate(data):
         raise ValueError("Unexpected executive KPI totals")
     for name in ("revenue_periods", "customer_states", "product_categories"):
         rows = data[name]
-        if tuple(sum((as_decimal(r[k]) for r in rows), Decimal("0")) for k in MONEY) != EXPECTED_MONEY:
+        if tuple(sum((as_decimal(r[k]) for r in rows), Decimal(0)) for k in MONEY) != EXPECTED_MONEY:
             raise ValueError(f"{name}: monetary parity failed")
     for name in ("revenue_periods", "customer_states"):
         rows = data[name]
@@ -136,7 +136,7 @@ def validate(data):
     repeat = {r["is_repeat_customer"]: r for r in data["repeat_customers"]}
     if set(repeat) != {False, True} or repeat[False]["customers"] != 90557 or repeat[True]["customers"] != 2801:
         raise ValueError("Repeat-customer counts mismatch")
-    if sum((as_decimal(r["gross_order_value"]) for r in repeat.values()), Decimal("0")) != EXPECTED_MONEY[2]:
+    if sum((as_decimal(r["gross_order_value"]) for r in repeat.values()), Decimal(0)) != EXPECTED_MONEY[2]:
         raise ValueError("Repeat-customer gross parity failed")
     if min(r["customers"] for r in repeat.values()) < 10:
         raise ValueError("Repeat-customer small group")

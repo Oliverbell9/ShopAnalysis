@@ -3,7 +3,12 @@ from decimal import Decimal
 
 import pytest
 
-from dashboards.public_aggregate_generator import as_decimal, validate, EXPECTED, ALLOWED
+from dashboards.public_aggregate_generator import (
+    ALLOWED,
+    EXPECTED,
+    as_decimal,
+    validate,
+)
 
 
 def test_decimal_rejects_float_and_null():
@@ -36,6 +41,7 @@ def test_validation_rejects_incorrect_group_count():
 def test_duplicate_grouping_key_rejected():
     from copy import deepcopy
     from pathlib import Path
+
     from dashboards.public_aggregate_generator import build_in_memory
 
     db = Path("data/airflow_dev/shopanalysis_airflow.duckdb")
@@ -63,6 +69,7 @@ def test_export_csv_roundtrip(tmp_path, monkeypatch):
     """Synthetic CSV export preserves approved headers and exact decimals."""
     import csv
     from decimal import Decimal
+
     from dashboards import public_aggregate_generator as generator
 
     synthetic = {
@@ -147,6 +154,7 @@ def test_export_csv_rejects_invalid_data_before_writing(
 def test_export_csv_verification_failure_cleanup(tmp_path, monkeypatch):
     """Verification failure removes only the newly created export directory."""
     import csv
+
     from dashboards import public_aggregate_generator as generator
 
     synthetic = {"sample": [{"group": "Example"}]}
@@ -179,6 +187,7 @@ def test_export_csv_verification_failure_cleanup(tmp_path, monkeypatch):
 def test_export_cleanup_preserves_unrelated_file(tmp_path, monkeypatch):
     """Failed export must preserve files it did not create."""
     import csv
+
     from dashboards import public_aggregate_generator as generator
 
     synthetic = {"sample": [{"group": "Example"}]}
@@ -260,8 +269,9 @@ def test_export_rejects_mocked_symlink(
     tmp_path, monkeypatch, destination_exists
 ):
     """Reject existing and broken symlinks before directory creation."""
-    from unittest.mock import patch
     from pathlib import Path
+    from unittest.mock import patch
+
     from dashboards import public_aggregate_generator as generator
 
     monkeypatch.setattr(generator, "EXPECTED", {"sample": 1})

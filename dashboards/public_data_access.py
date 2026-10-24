@@ -7,7 +7,6 @@ import stat
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-
 SCHEMAS = {
     "executive_kpis": (
         "delivered_orders", "merchandise", "freight", "gross"
@@ -155,9 +154,9 @@ def _validate(data: dict[str, list[dict]]) -> None:
                 if column in row:
                     row[column] = _money(row[column])
 
-            if all(column in row for column in MONEY):
-                if row["merchandise"] + row["freight"] != row["gross"]:
-                    _fail("Financial reconciliation failed")
+            if (all(column in row for column in MONEY)
+                    and row["merchandise"] + row["freight"] != row["gross"]):
+                _fail("Financial reconciliation failed")
 
         key = {
             "revenue_periods": "reporting_period",
@@ -202,7 +201,7 @@ def _validate(data: dict[str, list[dict]]) -> None:
         totals = tuple(
             sum(
                 (row[column] for row in data[name]),
-                Decimal("0"),
+                Decimal(0),
             )
             for column in MONEY
         )
@@ -255,7 +254,7 @@ def _validate(data: dict[str, list[dict]]) -> None:
 
     if sum(
         (row["gross_order_value"] for row in repeat.values()),
-        Decimal("0"),
+        Decimal(0),
     ) != EXPECTED_MONEY[2]:
         _fail("Repeat-customer gross parity failed")
 

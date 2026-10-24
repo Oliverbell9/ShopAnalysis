@@ -7,7 +7,6 @@ import pytest
 from observability.audit_collector import AuditCollector
 from observability.init_observability_db import DDL
 
-
 SCORECARD_SQL = (
     Path(__file__).resolve().parents[1]
     / "observability"
@@ -122,7 +121,7 @@ def test_naive_detection_time_rejected(audit_env):
             injection_stage="fault_test_stage",
             expected_control="Detect simulated failure",
             detected=True,
-            detection_time=datetime(2026, 1, 1),
+            detection_time=datetime(2026, 1, 1)  # noqa: DTZ001 - deliberately naive to test rejection,
         )
 
     assert count_faults(database) == 0

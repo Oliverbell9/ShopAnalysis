@@ -11,7 +11,6 @@ from dashboards.public_data_access import (
     load_public_aggregates,
 )
 
-
 EXPORT_NAME = "export_20261012T141941Z_5e2149187ff6"
 
 
@@ -178,6 +177,7 @@ def test_windows_junction_rejected(export_copy, tmp_path):
     junction = tmp_path / "junction_export"
     result = subprocess.run(
         ["cmd", "/c", "mklink", "/J", str(junction), str(export_copy)],
+        check=False,
         capture_output=True,
         text=True,
     )

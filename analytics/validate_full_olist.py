@@ -19,7 +19,7 @@ def decimal_value(value):
     if value is None:
         raise ValueError("Missing aggregate monetary value")
     if isinstance(value, float):
-        raise ValueError("Unexpected floating-point monetary aggregate")
+        raise ValueError("Unexpected floating-point monetary aggregate")  # noqa: TRY004 - monetary validation contract
     return Decimal(str(value))
 
 

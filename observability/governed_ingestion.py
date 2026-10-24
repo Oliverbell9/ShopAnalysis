@@ -6,15 +6,14 @@ Does not claim cross-database transaction atomicity.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 from observability.audit_collector import AuditCollector
 from observability.commit_state import CommitState, CommitTracker
 from observability.ingestion_config import (
     EXPECTED_RAW_TABLES,
-    PIPELINE_NAME,
-    STAGE_NAME,
     validate_ingestion_identity,
 )
 from observability.ingestion_evidence import validate_ingestion_evidence
@@ -156,7 +155,7 @@ def execute_governed_ingestion(
                     type(original_error).__name__,
                     str(original_error),
                 )
-            except Exception as cleanup_error:
+            except Exception as cleanup_error:  # noqa: BLE001 - collect audit cleanup errors
                 cleanup_errors.append(cleanup_error)
 
         try:
@@ -166,7 +165,7 @@ def execute_governed_ingestion(
                 type(original_error).__name__,
                 str(original_error),
             )
-        except Exception as cleanup_error:
+        except Exception as cleanup_error:  # noqa: BLE001 - collect audit cleanup errors
             cleanup_errors.append(cleanup_error)
 
         if cleanup_errors:

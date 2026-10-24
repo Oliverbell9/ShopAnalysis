@@ -1,5 +1,6 @@
 """Isolated tests for the read-only remaining marts evidence gate."""
 import pytest
+
 from analytics.validate_olist_remaining_marts import QUERIES, assess, inspect
 
 

@@ -3,18 +3,17 @@
 from pathlib import Path
 
 import duckdb
+from test_raw_ingestion_preflight import create_entity_files
 
 from ingestion.duckdb import load_olist_raw as loader
 from observability.governed_raw_entrypoint import (
     run_governed_raw_ingestion,
 )
-from observability.init_observability_db import DDL
 from observability.ingestion_config import (
     PIPELINE_NAME,
     STAGE_NAME,
 )
-
-from test_raw_ingestion_preflight import create_entity_files
+from observability.init_observability_db import DDL
 
 
 def test_governed_raw_ingestion_end_to_end(

@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
-from typing import Mapping
 
 import duckdb
 
 from observability.ingestion_config import EXPECTED_RAW_TABLES
-
 
 EXPECTED_TABLES = EXPECTED_RAW_TABLES
 

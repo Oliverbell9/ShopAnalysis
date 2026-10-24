@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Mapping
 
 from observability.audit_collector import AuditCollector
 from observability.ingestion_config import EXPECTED_RAW_TABLES
@@ -11,7 +11,6 @@ from observability.pipeline_recovery_evidence import (
     validate_pipeline_recovery_evidence_in_transaction,
 )
 from observability.raw_batch_verifier import inspect_raw_batch
-
 
 RECOVERY_AUTHORIZATION = "AUTHORIZE_PIPELINE_RECOVERY"
 

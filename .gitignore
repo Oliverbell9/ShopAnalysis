@@ -109,3 +109,6 @@ Codes.txt
 
 # Locally generated public aggregate exports
 /data/public_aggregate_exports/
+
+# Local database recovery exports and verification artifacts
+/backups/
