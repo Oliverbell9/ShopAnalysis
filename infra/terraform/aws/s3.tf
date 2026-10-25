@@ -45,8 +45,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "shopanalysis" {
   bucket = aws_s3_bucket.shopanalysis.id
 
   rule {
-    id     = "expire-noncurrent-versions-after-30-days"
-    status = "Enabled"
+    id = "expire-noncurrent-versions-after-30-days"
+    # ADR-001: historical versions must not expire automatically.
+    status = "Disabled"
 
     filter {
       prefix = ""

@@ -3,13 +3,10 @@ locals {
 
   environments = {
     dev = {
-      allow_delete = true
     }
     ci = {
-      allow_delete = true
     }
     prod = {
-      allow_delete = false
     }
   }
 }
@@ -107,22 +104,14 @@ data "aws_iam_policy_document" "environment_s3" {
     ]
   }
 
-  dynamic "statement" {
-    for_each = each.value.allow_delete ? [1] : []
-
-    content {
-      sid    = "DeleteEnvironmentObjects"
-      effect = "Allow"
-
-      actions = [
-        "s3:DeleteObject"
-      ]
-
-      resources = [
-        "${aws_s3_bucket.shopanalysis.arn}/${each.key}/*"
-      ]
-    }
+  # Normal CI/ingestion roles cannot delete protected history, including versions.
+  statement {
+    sid       = "DenyDeleteEnvironmentObjects"
+    effect    = "Deny"
+    actions   = ["s3:DeleteObject", "s3:DeleteObjectVersion"]
+    resources = ["${aws_s3_bucket.shopanalysis.arn}/${each.key}/*"]
   }
+
 }
 
 resource "aws_iam_role_policy" "environment_s3" {
