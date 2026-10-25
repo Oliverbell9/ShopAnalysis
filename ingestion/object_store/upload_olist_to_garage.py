@@ -29,6 +29,8 @@ import pyarrow.parquet as pq
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
+from ingestion.object_store.protected_batch_governance import append_audit_event
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PARQUET_ROOT = PROJECT_ROOT / "data" / "parquet" / "olist"
 
@@ -61,8 +63,10 @@ def parquet_batch_id(path: Path) -> str:
         raise RuntimeError(f"{path.name}: _batch_id lineage column is missing")
 
     batch_table = pq.read_table(path, columns=["_batch_id"])
-    batch_ids = set(batch_table.column("_batch_id").to_pylist())
-    batch_ids.discard(None)
+    values = batch_table.column("_batch_id")
+    if len(values) == 0 or values.null_count:
+        raise RuntimeError(f"{path.name}: _batch_id contains null values or no rows")
+    batch_ids = set(values.to_pylist())
 
     if len(batch_ids) != 1:
         raise RuntimeError(
@@ -138,10 +142,18 @@ def sha256_remote(s3, bucket: str, key: str) -> str:
     return digest.hexdigest()
 
 
-def upload_protected(s3, bucket: str, key: str, path: Path, metadata: dict[str, str]) -> str:
+def upload_protected(s3, bucket: str, key: str, path: Path, metadata: dict[str, str],
+                     *, audit_path: Path | None = None) -> str:
     """Conditional create only. Unsupported conditional writes fail closed."""
     local_hash = sha256_path(path)
     local_size = path.stat().st_size
+    def audit(outcome: str) -> None:
+        if audit_path is not None:
+            append_audit_event(audit_path, operation="PROTECTED_UPLOAD", outcome=outcome,
+                               bucket=bucket, key=key,
+                               batch_id=metadata.get("batch-id", "unknown"), sha256=local_hash)
+    # Record intent before network activity; if the ledger is unavailable, do not write.
+    audit("ATTEMPTED")
     try:
         with path.open("rb") as stream:
             s3.put_object(
@@ -162,10 +174,13 @@ def upload_protected(s3, bucket: str, key: str, path: Path, metadata: dict[str, 
         except ClientError as read_exc:
             raise RuntimeError(f"Cannot verify existing object: {key}") from read_exc
         if existing_hash != local_hash:
+            audit("PROTECTED_BATCH_CONFLICT")
             raise RuntimeError(f"PROTECTED_BATCH_CONFLICT: {key}")
         outcome = "IDENTICAL_REPLAY"
     if sha256_remote(s3, bucket, key) != local_hash:
+        audit("REMOTE_CONTENT_MISMATCH")
         raise RuntimeError(f"REMOTE_CONTENT_MISMATCH: {key}")
+    audit(outcome)
     return outcome
 
 
@@ -193,6 +208,12 @@ def main() -> None:
     # Physical ingestion partition: runtime UTC date.
     ingest_date = datetime.now(timezone.utc).date().isoformat()
 
+    # A writable local ledger is required for this CLI. Set a protected,
+    # backed-up directory; this is not a tamper-resistant production audit store.
+    audit_dir = PROJECT_ROOT / "data" / "protected_batch_audit"
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = audit_dir / "garage_upload.jsonl"
+
     s3 = boto3.client(
         "s3",
         endpoint_url=endpoint,
@@ -217,6 +238,7 @@ def main() -> None:
             s3, bucket, object_key, path,
             {"source": "olist", "entity": entity,
              "batch-id": batch_id, "ingest-date": ingest_date},
+            audit_path=audit_path,
         )
         remote_size = local_size
         print(f"{outcome}: {entity} {object_key}")

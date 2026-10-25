@@ -5,7 +5,12 @@ from unittest.mock import Mock
 import pytest
 from botocore.exceptions import ClientError
 
-from ingestion.object_store.upload_olist_to_garage import upload_protected
+from ingestion.object_store.upload_olist_to_garage import (
+    parquet_batch_id, upload_protected,
+)
+
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 
 def conflict(status=412, code="PreconditionFailed"):
@@ -70,3 +75,39 @@ def test_post_write_content_mismatch_fails(tmp_path: Path):
     s3 = fake_client(existing=b"incorrect")
     with pytest.raises(RuntimeError, match="REMOTE_CONTENT_MISMATCH"):
         upload_protected(s3, "bucket", "key", path, {})
+
+
+@pytest.mark.parametrize("values", [["batch-1", None], [None, None], []])
+def test_parquet_batch_id_rejects_null_or_empty(tmp_path: Path, values):
+    path = tmp_path / "batch.parquet"
+    pq.write_table(pa.table({"_batch_id": pa.array(values, type=pa.string())}), path)
+    with pytest.raises(RuntimeError, match="_batch_id"):
+        parquet_batch_id(path)
+
+
+def test_parquet_batch_id_accepts_single_nonnull_batch(tmp_path: Path):
+    path = tmp_path / "batch.parquet"
+    pq.write_table(pa.table({"_batch_id": ["batch-1", "batch-1"]}), path)
+    assert parquet_batch_id(path) == "batch-1"
+
+
+def test_upload_writes_audit_intent_and_outcome(tmp_path: Path):
+    import json
+    path = tmp_path / "batch.parquet"
+    path.write_bytes(b"example payload")
+    log = tmp_path / "audit.jsonl"
+    s3 = fake_client()
+    assert upload_protected(s3, "bucket", "key", path, {"batch-id": "batch-1"},
+                            audit_path=log) == "CREATED"
+    events = [json.loads(x) for x in log.read_text().splitlines()]
+    assert [x["outcome"] for x in events] == ["ATTEMPTED", "CREATED"]
+
+
+def test_upload_does_not_write_if_audit_unavailable(tmp_path: Path):
+    path = tmp_path / "batch.parquet"
+    path.write_bytes(b"example payload")
+    s3 = fake_client()
+    with pytest.raises(FileNotFoundError):
+        upload_protected(s3, "bucket", "key", path, {},
+                         audit_path=tmp_path / "missing" / "audit.jsonl")
+    s3.put_object.assert_not_called()

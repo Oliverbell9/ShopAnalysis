@@ -1,6 +1,7 @@
 # ADR-001: Raw File Format and Partitioning
 
-- **Status:** Proposed
+- **Decision status:** Accepted (architectural and governance policy only)
+- **Implementation status:** In progress; backend enforcement not certified
 - **Date:** 2026-10-01
 - **Decision Owners:** ShopAnalysis Project
 - **Scope:** Data ingestion and raw storage
@@ -80,7 +81,7 @@ Both Garage and AWS S3 must enforce the following logical requirements:
 4. Historical batches must be protected against unintended replacement or removal under an explicit retention policy.
 5. Upload outcomes must provide auditable evidence distinguishing new uploads, identical replays, and rejected conflicts.
 
-The retention duration is not yet selected.
+**Approved governance policy:** Protected historical batches are retained indefinitely in `dev`, `ci`, and `prod`. Ordinary ingestion identities must not delete protected batches. Exceptional deletion requires explicit authorization by the repository/project owner, with no mandatory waiting period. Deletion execution must be separately controlled and auditable. These decisions are final; enforcement remains subject to implementation and verification.
 
 The implementation mechanism must be validated for each storage backend. S3 versioning alone is not considered sufficient evidence of overwrite prevention.
 
@@ -106,11 +107,11 @@ The object-storage workflow must preserve batch identity and provide verifiable 
 
 - Two physical landing layouts must be documented and maintained.
 - Backend-specific overwrite-prevention mechanisms require implementation and validation.
-- The current Garage uploader does not demonstrate rejection of conflicting writes to existing keys.
+- The Garage uploader implements conditional creation and SHA-256 comparison; its mocked tests do not certify live backend enforcement.
 - Object-size verification does not establish cryptographic content equality.
 - Local Parquet regeneration may change file bytes without changing the source-derived batch identifier.
 - AWS S3 Terraform configures versioning and expiration of noncurrent versions after 30 days; this does not establish indefinite historical retention.
-- Retention duration, deletion controls, and recovery requirements remain unresolved.
+- Retention duration, environment scope, approval authority, and waiting-period policy are decided. Backend deletion controls and recovery verification remain outstanding.
 
 ## Validation Evidence
 
@@ -126,13 +127,25 @@ Repository source inspection is not equivalent to successful runtime validation.
 
 ### Outstanding validation and decisions
 
-- Implement and test conflicting-upload rejection for Garage.
+- Validate Garage conditional writes, conflict rejection, and concurrency against an authorized isolated backend.
 - Define and validate equivalent protection for AWS S3.
-- Verify cryptographic content equality for replay handling.
-- Define historical retention duration and deletion authorization controls.
+- Verify cryptographic content equality for replay handling on each live backend.
+- Implement the approved indefinite-retention and owner-authorized deletion controls for all three environments.
 - Reconcile the existing 30-day noncurrent-version expiration policy with the selected retention requirements.
 - Validate new-upload, identical-replay, and conflicting-replay scenarios for each backend.
 - Establish deployment and runtime evidence for the AWS landing workflow.
 - Complete governance review before changing ADR status to Accepted.
 
-This ADR remains Proposed until the outstanding requirements have been resolved and formal acceptance has been authorized.
+**Decision disposition:** The architecture and governance policy are **Accepted** by the project owner. This does not certify backend enforcement or deployment. Implementation acceptance requires separate runtime evidence.
+
+## Approved exceptional-deletion contract
+
+An owner authorization must identify the exact environment, bucket/backend, object key(s) and version(s) where applicable, reason, approver identity, and authorization reference. The executor must verify authorization before any delete operation. Ordinary ingestion and CI roles must not be able to invoke the exceptional deletion mechanism. Record the approval reference, actor, operation, outcome, and timestamps in durable tamper-resistant audit evidence. No waiting period is mandated.
+
+**Design caution:** AWS S3 versioning and lifecycle expiration do not enforce this policy by themselves. Object Lock compliance retention may prevent immediate authorized deletion, while governance bypass requires carefully restricted permissions; select controls only after validating this tradeoff. Garage requires separately validated access and deletion controls. No production enforcement is certified by this document.
+
+## Local implementation increment (review required)
+
+The local patch adds append-and-fsync JSONL records for uploader attempts and outcomes, structural checks for owner deletion approval (without any deletion executor), explicit normal-role deletion denial in Terraform, and disables the 30-day noncurrent-version expiration rule in Terraform source. Terraform is **not applied**.
+
+The JSONL ledger is **not tamper-resistant** and may fail after a successful remote write; such failures require reconciliation against object storage. Owner ID matching is **not authentication**, and no exceptional deletion workflow is authorized or implemented. Existing objects and live cloud permissions remain unverified.
