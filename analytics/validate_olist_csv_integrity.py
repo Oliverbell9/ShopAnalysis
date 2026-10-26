@@ -11,7 +11,12 @@ import json
 import re
 from pathlib import Path
 
-from analytics.validate_raw_olist import ENTITY_TABLES, expected_rows
+try:
+    from analytics.validate_raw_olist import ENTITY_TABLES, expected_rows
+except ModuleNotFoundError as exc:
+    if exc.name != 'analytics':
+        raise
+    from validate_raw_olist import ENTITY_TABLES, expected_rows
 
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
