@@ -522,19 +522,11 @@ The completed project is expected to include:
 
 ## Project Status
 
-**Current Phase:** Foundation and environment setup.
+**Portfolio status: Complete — feature development frozen (2026-10-25).**
 
-Completed foundation work currently includes:
+ShopAnalysis is presented as a finished, version-controlled **data engineering portfolio deliverable**. The project includes governed RAW ingestion code, automated validation, infrastructure-as-code definitions, and supporting architecture and operational documentation. The cloud architecture is a reference design; infrastructure definitions in the repository are not evidence of deployment.
 
-- repository structure;
-- Python virtual environment;
-- Git repository initialization;
-- public-repository `.gitignore` controls;
-- environment-variable template;
-- project charter;
-- initial seven-ADR framework.
-
-Infrastructure provisioning, source acquisition, ingestion, transformation, orchestration, analytics, and dashboards will be added progressively.
+For the final evidence-based handoff, see [Portfolio Completion Record](docs/portfolio_completion.md) and [Reproducible Validation](docs/validation.md).
 
 ---
 
