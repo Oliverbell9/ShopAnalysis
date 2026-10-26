@@ -18,7 +18,7 @@
 
 ## Evidence and reproducibility
 
-The prior completion record reports 200 passed / 5 skipped Python tests and a passing CI run, but does not identify the exact pytest invocation, skipped-test reasons, or a GitHub Actions run URL. Treat those figures as **historical reports**, not reproducible certification, until linked to the specific commit and run. Follow [validation](validation.md) for the documented synthetic checks.
+The prior completion record reports 200 passed / 5 skipped Python tests and a passing CI run, but does not identify the exact pytest invocation or skipped-test reasons. A later [GitHub Actions run #157](https://github.com/Oliverbell9/ShopAnalysis/actions/runs/40344237925) succeeded on commit `e039550727a96486ca1ede963d7625e4d7bc9862` with synthetic-only coverage. Treat those figures as **historical reports**, not reproducible certification, until linked to the specific commit and run. Follow [validation](validation.md) for the documented synthetic checks.
 
 `requirements.txt` and the workflow both specify Python 3.14, dbt-core 1.12.0, and dbt-duckdb 1.11.0; agreement between configuration files is not independent proof of dependency compatibility.
 
@@ -26,7 +26,7 @@ Terraform's 2-add / 6-change plan indicates existing tracked infrastructure stat
 
 ## Architecture and governance decisions
 
-[ADR-001](adr/ADR-001-raw-file-format-partitioning.md) accepts the architecture and governance policy, **not** historical-batch backend enforcement. The local Parquet working landing zone is replaceable; it is not itself immutable historical storage. Other ADR acceptance statuses should be read individually; the number accepted has not been independently enumerated here.
+[ADR-001](adr/ADR-001-raw-file-format-partitioning.md) accepts the architecture and governance policy, **not** historical-batch backend enforcement. The local Parquet working landing zone is replaceable; it is not itself immutable historical storage. The seven ADRs were enumerated: ADR-001 is Accepted for architectural policy only; ADR-002 through ADR-007 are Proposed.
 
 ## Repository hygiene and licensing
 

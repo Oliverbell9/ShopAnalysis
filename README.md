@@ -1,559 +1,94 @@
 # ShopAnalysis
 
-**Governed RAW Ingestion and Analytics Engineering Portfolio**
-
-ShopAnalysis is a data engineering portfolio repository containing implemented governed RAW ingestion, automated tests, synthetic dbt/DuckDB validation, and infrastructure-as-code alongside a broader reference analytics architecture. The sections below describe both implemented work and proposed designs; consult the evidence-based status section to distinguish them.
-
-The project is built around an illustrative business problem: different business functions report different revenue figures because they use inconsistent metric definitions, different event-time versus booking-time treatments, and unreconciled source systems. The dollar figures below are hypothetical, not observed Olist or UCI dataset outputs.
-
-| Business Function | Reported Revenue |
-|---|---:|
-| Finance | $4.8M |
-| Marketing | $5.1M |
-| Operations | $4.6M |
-
-The full-dataset target of reconciling key metrics within 0.1% has not been verified. The objective is not simply to produce another revenue number. ShopAnalysis builds the engineering, reconciliation, governance, and observability framework required to explain the differences and establish reproducible, governed metrics.
-
----
-
-## Project Objectives
-
-ShopAnalysis is designed to:
-
-- reconcile key business metrics to within 0.1%;
-- build reproducible and idempotent ingestion and transformation pipelines;
-- implement source contracts and automated data-quality controls;
-- maintain explicit lineage from source files through analytical marts;
-- implement dimensional modeling and SCD Type 2 history;
-- protect personally identifiable information (PII) through governed access controls;
-- orchestrate production-style data workflows;
-- implement automated CI/CD;
-- measure warehouse cost and query performance;
-- deliberately inject and detect realistic data-quality failures;
-- build and validate advanced analytical models;
-- preserve a permanently reproducible implementation after temporary cloud resources expire.
-
----
-
-## Architecture
-
-ShopAnalysis uses two complementary implementations.
-
-### Reference Cloud Architecture
-
-```text
-Source Systems
-      |
-      v
-    AWS S3
-      |
-      v
-Snowflake RAW
-      |
-      v
- dbt STAGING
-      |
-      v
-dbt INTERMEDIATE
-      |
-      v
-  dbt MARTS
-      |
-      v
-Semantic / Metrics Layer
-      |
-      v
-BI + Analytics
-```
-
-The reference cloud implementation demonstrates:
-
-- AWS S3 and IAM;
-- Terraform infrastructure as code;
-- Snowflake storage integrations and external stages;
-- `COPY INTO` ingestion;
-- Snowpipe evaluation;
-- DEV / CI / PROD environment separation;
-- role-based access control;
-- PII masking and row-access policies;
-- resource monitors;
-- query history;
-- warehouse cost and performance analysis.
-
-### Permanent Portfolio Architecture
-
-```text
-Source Systems
-      |
-      v
-Local Files / Garage
-      |
-      v
-    Parquet
-      |
-      v
-  DuckDB RAW
-      |
-      v
- dbt STAGING
-      |
-      v
-dbt INTERMEDIATE
-      |
-      v
-  dbt MARTS
-      |
-      v
-Semantic / Metrics Layer
-      |
-      v
-BI + Analytics
-```
+**Governed RAW ingestion and analytics engineering portfolio**
 
-The permanent implementation is designed to remain runnable without an active Snowflake or AWS subscription.
+**Status: Portfolio milestone concluded; feature development frozen.** This means the evidenced engineering foundation is delivered—not that the original end-to-end analytics platform or its business targets were certified.
 
-Apache Airflow provides workflow orchestration, while GitHub Actions provides CI/CD.
+## Business scenario
 
-The dbt transformation design will remain as warehouse-neutral as practical, with Snowflake-specific behavior isolated where required.
+Finance **$4.8M**, Marketing **$5.1M**, and Operations **$4.6M** are **hypothetical USD amounts** illustrating inconsistent revenue definitions. They are **not** Olist (BRL) or UCI Online Retail II (GBP) observations or conversions. The proposed target of reconciling full-source business metrics within **0.1% remains unverified**.
 
----
+## Implemented and evidenced
 
-## Technology Stack
+- Python/Olist-to-Parquet ingestion, source contracts, governed DuckDB RAW loading, batch audit and reconciliation controls; see [governed ingestion](docs/governed_raw_ingestion.md).
+- dbt/DuckDB synthetic transformations and tests. The seven-order CI fixture does **not** validate full-Olist controls; see [validation](docs/validation.md).
+- GitHub Actions static and synthetic CI. [Run #157](https://github.com/Oliverbell9/ShopAnalysis/actions/runs/40344237925) succeeded on commit `e039550727a96486ca1ede963d7625e4d7bc9862` (2026-10-26).
+- Terraform AWS S3/IAM definitions and uploader code. A Terraform plan and source files **do not establish** deployed retention enforcement or authorized infrastructure changes.
+- Documentation, architecture decisions, regression tests, and MIT-licensed project source code.
 
-| Area | Technology |
-|---|---|
-| Cloud Object Storage | AWS S3 |
-| Cloud Data Warehouse | Snowflake |
-| Local Object Storage | Garage / local files |
-| Permanent Local Warehouse | DuckDB |
-| Analytical File Format | Parquet |
-| Transformation | dbt |
-| Orchestration | Apache Airflow |
-| Infrastructure as Code | Terraform |
-| CI/CD | GitHub Actions |
-| Programming | Python |
-| Version Control | Git / GitHub |
-| BI / Semantic Layer | To be finalized |
+## Designed but not verified as delivered
 
----
+The broader **reference architecture** connects S3 → Snowflake RAW → dbt staging/intermediate/marts → semantic/BI analytics; a local reference design connects Parquet → DuckDB → dbt → analytics. Airflow scheduling, complete Snowflake deployment, production observability, masking/RBAC enforcement, full historical-batch protection, cost/performance studies, executive dashboards, CLV/forecasting, and end-to-end revenue reconciliation are **not certified** by the recorded evidence.
 
-## Data Sources
+The original deliverables list also contemplated a technical report, reconciliation workbook, fault-injection results, benchmark results, notebooks, and defense materials. Their completion has **not** been established. These are **not** claims of delivered artifacts.
 
-Planned source data includes:
+## Outside the concluded milestone
 
-- Olist;
-- UCI Online Retail II;
-- seeded synthetic CRM data;
-- seeded synthetic marketing data;
-- optional DataCo data where appropriate.
+No further feature development, cloud deployment, full-data certification, or new analytics deliverable is authorized by the portfolio closure. Any future implementation requires a separately scoped decision.
 
-Synthetic sources will contain known ground truth so that reconciliation and data-quality behavior can be objectively validated.
+## Architecture and data
 
----
+- **Local implementation:** Olist CSV inputs → verified Parquet → audited DuckDB RAW; synthetic dbt validation.
+- **Reference cloud design:** AWS S3 → Snowflake → dbt → BI/analytics.
+- **Source scope:** Olist is the main implemented ingestion contract; UCI, synthetic CRM/marketing, and optional DataCo are broader design candidates, not all confirmed integrated sources.
+- **Lineage:** local source hashes and batch IDs are implemented; protected historical retention across live object stores is not certified. The replaceable local Parquet landing zone is not immutable archival storage.
+- **Observability:** audit and error-handling components exist; no independently certified production monitoring service is claimed.
 
-## Raw Data and Lineage
+## Reproduce the evidenced validation
 
-The planned cloud landing convention is:
+Requirements are pinned in [requirements.txt](requirements.txt). The CI workflow specifies Python 3.14, `dbt-core==1.12.0`, and `dbt-duckdb==1.11.0`. These are the versions used by the workflow, not a general cross-platform compatibility guarantee.
 
-```text
-raw/<source>/<entity>/ingest_date=YYYY-MM-DD/batch_id=<batch_id>/part-00000.parquet
-```
+See [docs/validation.md](docs/validation.md) for **PowerShell and bash** commands, isolated fixture paths, and the two excluded full-Olist assertions. A passing synthetic CI run does not certify full-data metric controls.
 
-Raw data is treated as immutable.
+## Repository layout
 
-Snowflake RAW ingestion will preserve lineage metadata such as:
-
-- `_source_file`
-- `_file_row_number`
-- `_loaded_at`
-- `_batch_id`
-
-The ingestion design will emphasize idempotency, replayability, traceability, and reconciliation.
-
----
-
-## Source Contracts
-
-Source contracts will document information such as:
-
-- owner;
-- ingestion cadence;
-- primary key;
-- expected volume;
-- null policy;
-- PII classification;
-- SLA.
-
-Contracts are maintained as version-controlled project artifacts.
-
----
-
-## dbt Transformation Layers
-
-### STAGING
-
-Source-aligned models responsible for:
-
-- renaming;
-- type casting;
-- standardization;
-- deduplication;
-- basic source cleanup.
-
-Business joins are intentionally excluded from this layer.
-
-### INTERMEDIATE
-
-Reusable business logic including:
-
-- entity resolution;
-- cross-source transformations;
-- currency handling;
-- reusable business rules.
-
-### MARTS
-
-Governed analytical models containing:
-
-- conformed dimensions;
-- fact tables;
-- model contracts;
-- governed business metrics.
-
----
-
-## Planned Dimensional Model
-
-### Facts
-
-- `fct_orders`
-- `fct_order_items`
-- `fct_payments`
-- `fct_refunds`
-- `fct_shipments`
-- `fct_marketing_touches`
-- `fct_ad_spend_daily`
-
-### Dimensions
-
-- `dim_customer` — SCD Type 2
-- `dim_product`
-- `dim_seller`
-- `dim_date`
-- `dim_geography`
-- `dim_campaign`
-
-### Bridge
-
-- `bridge_order_campaign`
-
----
-
-## Governed Metrics
-
-Initial governed metrics include:
-
-- Gross Revenue
-- Net Revenue
-- Average Order Value (AOV)
-- Refund Rate
-- On-Time Delivery
-- Customer Acquisition Cost (CAC)
-
-Metric definitions and reconciliation logic will be maintained as version-controlled artifacts.
-
-A dedicated reconciliation process will explain the differences between the reference Finance, Marketing, and Operations revenue figures rather than simply replacing them with an unexplained consolidated number.
-
----
-
-## Data Quality and Fault Injection
-
-ShopAnalysis includes automated quality controls and deliberate fault injection.
-
-Planned fault scenarios include:
-
-- duplicate records;
-- late-arriving data;
-- schema drift;
-- orphan keys;
-- null keys;
-- negative quantities;
-- cancellations;
-- timezone inconsistencies;
-- currency inconsistencies;
-- backfilled corrections.
-
-The objective is to demonstrate whether the platform can detect, explain, and recover from realistic data failures.
-
----
-
-## Governance and Security
-
-The reference implementation will demonstrate:
-
-- role-based access control;
-- least-privilege access;
-- PII classification;
-- masking policies;
-- row-access policies where required;
-- email pseudonymization;
-- environment isolation;
-- documentation and auditability.
-
-No production credentials, secrets, private keys, account-specific infrastructure identifiers, or raw PII belong in this public repository.
-
-Local credentials must be supplied through environment variables or other secure mechanisms and must never be committed.
-
----
-
-## Orchestration
-
-Apache Airflow is responsible for workflow orchestration, including:
-
-- dependencies;
-- scheduling;
-- retries;
-- backoff;
-- SLA handling;
-- backfills.
-
-dbt remains responsible for analytical transformation logic, model dependencies, tests, contracts, and documentation.
-
-This separation will be formally documented in ADR-006.
-
----
-
-## CI/CD
-
-GitHub Actions will progressively validate:
-
-- Python code;
-- YAML;
-- SQL;
-- dbt parsing;
-- dbt compilation;
-- dbt tests;
-- infrastructure code;
-- deployment readiness.
-
-The project follows a trunk-based development approach with automated validation before deployment.
-
----
-
-## Cost and Performance
-
-The Snowflake implementation will capture evidence for:
-
-- query history;
-- query tags;
-- credit consumption;
-- warehouse sizing;
-- full versus incremental transformations;
-- applicable dynamic processing approaches;
-- scaling behavior;
-- pruning and clustering behavior;
-- resource-monitor behavior.
-
-Performance experiments will evaluate appropriate warehouse and materialization strategies across increasing data volumes.
-
-Benchmark results will be retained as project evidence so that the analysis remains available after temporary cloud resources are removed.
-
----
-
-## Advanced Analytics
-
-Planned analytical work includes:
-
-- customer lifetime value;
-- retention and survival analysis;
-- marketing attribution;
-- forecasting;
-- late-delivery prediction;
-- anomaly detection.
-
-Candidate techniques include BG/NBD and Gamma-Gamma modeling for CLV, survival methods for retention, multiple attribution approaches, predictive modeling for late delivery, and anomaly-detection methods.
-
-Analytical models must include explicit validation rather than presenting model output alone.
-
----
-
-## Repository Structure
+The following is a **top-level map**, not an exhaustive directory inventory:
 
 ```text
 ShopAnalysis/
-|
-|-- .github/
-|   `-- workflows/
-|
-|-- analytics/
-|   |-- models/
-|   |-- notebooks/
-|   `-- validation/
-|
-|-- dashboards/
-|
-|-- data/
-|   |-- manifests/
-|   |-- parquet/
-|   |-- raw/
-|   `-- samples/
-|
-|-- data_gen/
-|   |-- config/
-|   |-- fault_injection/
-|   `-- generator/
-|
-|-- dbt/
-|   |-- macros/
-|   |-- models/
-|   |   |-- staging/
-|   |   |-- intermediate/
-|   |   `-- marts/
-|   |-- seeds/
-|   |-- snapshots/
-|   |-- tests/
-|   `-- unit_tests/
-|
-|-- docs/
-|   |-- adr/
-|   |-- architecture/
-|   |-- data_model/
-|   |-- metrics/
-|   |-- report/
-|   |-- runbooks/
-|   |-- source_contracts/
-|   `-- charter.md
-|
-|-- infra/
-|   `-- terraform/
-|       |-- aws/
-|       `-- snowflake/
-|
-|-- ingestion/
-|   |-- copy_scripts/
-|   |-- file_formats/
-|   |-- reconciliation/
-|   `-- stages/
-|
-|-- orchestration/
-|   `-- dags/
-|
-|-- .env.example
-|-- .gitignore
-|-- docker-compose.yml
-|-- README.md
-`-- requirements.txt
+├── .github/workflows/        # static and synthetic CI
+├── analytics/                # analytics source and validation
+├── dashboards/               # dashboard-related source
+├── data/                     # manifests and ignored local landing areas
+├── data_gen/                 # synthetic fixture generator
+├── dbt/                      # transformations and tests
+├── docs/
+│   ├── adr/                 # ADR-001 through ADR-007
+│   ├── portfolio_completion.md
+│   ├── evidence_and_scope.md
+│   ├── validation.md
+│   └── governed_raw_ingestion.md
+├── infra/terraform/          # AWS and Snowflake definitions
+├── ingestion/                # ingestion and object-store code
+├── observability/            # audit/observability source
+├── orchestration/airflow/    # Airflow-related files
+├── scripts/                  # command-line utilities
+├── tests/                    # regression tests
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
 
----
+## Architecture decision records
 
-## Architecture Decision Records
+There are **seven ADRs** in [docs/adr](docs/adr/). **ADR-001** is **Accepted for architectural and governance policy only**; its backend retention enforcement is **not certified**. **ADR-002 through ADR-007 are Proposed**. Proposed decisions are not represented as operationally implemented.
 
-The project maintains formal Architecture Decision Records for major technical decisions:
+## Governance and publication
 
-1. **ADR-001** — Raw File Format and Partitioning
-2. **ADR-002** — Ingestion Method
-3. **ADR-003** — Environment Strategy
-4. **ADR-004** — dbt Materialization Policy
-5. **ADR-005** — Dimensional Modeling and SCD Strategy
-6. **ADR-006** — Airflow / dbt Orchestration Boundary
-7. **ADR-007** — RBAC and Access Model
-
-ADRs begin in `Proposed` status and move to `Accepted` only after the decision, rationale, consequences, and supporting evidence are documented.
-
----
-
-## Reproducibility
-
-The project is designed so that another developer can eventually reproduce the platform from version-controlled artifacts.
-
-Local secrets are supplied through environment variables and are never committed.
-
-Use:
-
-```text
-.env.example
-```
-
-as the template for local configuration.
-
-The permanent DuckDB/Garage implementation is intended to preserve a runnable version of the platform even after temporary AWS and Snowflake resources are unavailable.
-
----
-
-## Public Repository Safety
-
-This repository is intended to be public.
-
-The following must not be committed:
-
-- `.env`;
-- passwords;
-- API keys;
-- AWS credentials;
-- Snowflake credentials;
-- private keys;
-- Terraform state containing sensitive values;
-- raw PII;
-- personal/local notes;
-- local virtual environments;
-- machine-specific paths or identifiers.
-
-The repository's `.gitignore` provides an initial safeguard, but files must still be reviewed before commits are pushed publicly.
-
----
-
-## Primary Deliverables
-
-The completed project is expected to include:
-
-- a reproducible public repository;
-- at least seven ADRs;
-- a technical report;
-- a revenue reconciliation workbook;
-- data-quality and fault-injection results;
-- cost/performance benchmark results;
-- an executive dashboard;
-- analytical notebooks;
-- documented runbooks;
-- project defense materials.
-
----
-
-## Project Status
-
-**Status: Portfolio milestone concluded; feature development frozen.** This is not a claim that the original end-to-end platform scope is fully implemented.
-
-**Implemented and documented:** governed Olist/DuckDB RAW ingestion components, audit and reconciliation controls, synthetic dbt validation, Python tests, Terraform source, and a GitHub Actions workflow.
-
-**Designed or not verified as delivered:** full-Olist 0.1% reconciliation, the two full-dataset dbt controls excluded from synthetic CI, live AWS Object Lock enforcement, end-to-end Snowflake/Airflow deployment, executive dashboards, advanced analytics, benchmark results, and defense materials.
-
-The Finance/Marketing/Operations dollar figures are illustrative, not measured Olist (BRL) or UCI Online Retail II (GBP) results. See [Evidence and Scope](docs/evidence_and_scope.md), [Validation](docs/validation.md), and [Portfolio Completion Record](docs/portfolio_completion.md).
-
----
+- The current Git tree tracks only `.gitkeep` files in `data/raw/`, `data/parquet/`, and `data/samples/`; it contains no tracked `.duckdb` or Terraform state files. This does not audit historical commits.
+- The [.gitignore](.gitignore) excludes local data, database files, secrets, and Terraform state. It does not replace a repository history or data-licensing audit.
+- Source code is [MIT licensed](LICENSE). Third-party datasets, including Olist and UCI, retain separate terms; the project MIT license does **not** authorize their redistribution.
+- The reported **200 passed / 5 skipped** Python result lacks an identified invocation and skip-reason log. Treat it as historical, not independently anchored CI evidence.
+- The Terraform **2 additions / 6 changes / 0 deletions** plan implies existing state or imported resources; state provenance has not been verified. No `terraform apply` was authorized by portfolio closure.
 
 ## Documentation
 
-Project documentation is maintained under `docs/`.
+- [Evidence and scope](docs/evidence_and_scope.md)
+- [Validation and reproducibility](docs/validation.md)
+- [Governed RAW ingestion](docs/governed_raw_ingestion.md)
+- [Portfolio completion record](docs/portfolio_completion.md)
+- [Architecture decisions](docs/adr/)
+- [Project charter](docs/charter.md)
 
-Key locations include:
-
-- Project charter: `docs/charter.md`
-- Governed RAW ingestion: [Execution contract](docs/governed_raw_ingestion.md)
-- Architecture decisions: `docs/adr/`
-- Architecture documentation: `docs/architecture/`
-- Source contracts: `docs/source_contracts/`
-- Metric specifications: `docs/metrics/`
-- Data-model documentation: `docs/data_model/`
-- Runbooks: `docs/runbooks/`
-- Technical report: `docs/report/`
-
----
-
-## License
-
-ShopAnalysis source code is licensed under the [MIT License](LICENSE). Third-party datasets and dependencies retain their respective terms.
-
-## Reproducible validation
-
-See [Local validation and CI evidence](docs/validation.md) for the synthetic CI commands, coverage boundaries, and full-dataset test exclusions. Historical batch protection remains an implementation requirement under [ADR-001](docs/adr/ADR-001-raw-file-format-partitioning.md) (architectural policy Accepted; backend enforcement not certified).
+**Collaboration:** [PR #17](https://github.com/Oliverbell9/ShopAnalysis/pull/17) remains open pending an explicit owner merge/close decision. The repository uses review branches and pull requests; no claim of direct-to-main-only development is made.
