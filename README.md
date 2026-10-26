@@ -552,7 +552,7 @@ Key locations include:
 
 ## License
 
-No license has been selected; public availability does not itself grant reuse permission. The owner must choose a license.
+ShopAnalysis source code is licensed under the [MIT License](LICENSE). Third-party datasets and dependencies remain subject to their respective licenses and redistribution terms.
 
 ## Reproducible validation
 
