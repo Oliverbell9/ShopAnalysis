@@ -1,5 +1,5 @@
 locals {
-  github_repository = "Oliverbell9@92740323/ShopAnalysis@1401892624"
+  github_repository = "Oliverbell9/ShopAnalysis"
 
   environments = {
     dev = {
@@ -96,12 +96,29 @@ data "aws_iam_policy_document" "environment_s3" {
 
     actions = [
       "s3:GetObject",
-      "s3:PutObject"
+      "s3:GetObjectVersion",
+      "s3:GetObjectLegalHold",
+      "s3:PutObject",
+      "s3:PutObjectLegalHold"
     ]
 
     resources = [
       "${aws_s3_bucket.shopanalysis.arn}/${each.key}/*"
     ]
+  }
+
+  # An uploader may create a legal hold ON, but must never release one.
+  statement {
+    sid       = "DenyReleaseOfLegalHold"
+    effect    = "Deny"
+    actions   = ["s3:PutObjectLegalHold"]
+    resources = ["${aws_s3_bucket.shopanalysis.arn}/${each.key}/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:object-lock-legal-hold"
+      values   = ["OFF"]
+    }
   }
 
   # Normal CI/ingestion roles cannot delete protected history, including versions.

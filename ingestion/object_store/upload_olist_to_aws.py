@@ -11,8 +11,8 @@ from pathlib import Path
 from ingestion.object_store.upload_olist_to_garage import (
     discover_files,
     parquet_batch_id,
-    upload_protected,
 )
+from ingestion.object_store.aws_legal_hold import upload_aws_legal_hold
 
 
 def upload_olist_batch_to_aws(
@@ -55,7 +55,7 @@ def upload_olist_batch_to_aws(
             f"{environment}/raw/olist/{entity}/ingest_date={ingest_date}/"
             f"batch_id={batch_id}/part-00000.parquet"
         )
-        outcome = upload_protected(
+        outcome = upload_aws_legal_hold(
             s3, bucket, key, path,
             {"source": "olist", "entity": entity,
              "batch-id": batch_id, "ingest-date": ingest_date,
