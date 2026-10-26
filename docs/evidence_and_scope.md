@@ -32,7 +32,7 @@ Terraform's 2-add / 6-change plan indicates existing tracked infrastructure stat
 
 The [gitignore](../.gitignore) excludes `data/raw/*`, `data/parquet/*`, `data/samples/*`, `*.duckdb`, Terraform state, and local secrets. Ignore rules do not prove that files were never tracked; verify with `git ls-files` before public distribution. Dataset redistribution requires a separate license review.
 
-No license has been selected. Do not assume permission to reuse this repository merely because it is public.
+ShopAnalysis source code is licensed under the [MIT License](../LICENSE). Third-party datasets and dependencies are not relicensed.
 
 ## Collaboration
 
