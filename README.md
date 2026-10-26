@@ -1,10 +1,10 @@
 # ShopAnalysis
 
-**A Governed, Observable Analytics Platform**
+**Governed RAW Ingestion and Analytics Engineering Portfolio**
 
-ShopAnalysis is an end-to-end data engineering and analytics portfolio project that demonstrates how a modern analytics platform can ingest, transform, govern, reconcile, orchestrate, observe, and analyze commerce data.
+ShopAnalysis is a data engineering portfolio repository containing implemented governed RAW ingestion, automated tests, synthetic dbt/DuckDB validation, and infrastructure-as-code alongside a broader reference analytics architecture. The sections below describe both implemented work and proposed designs; consult the evidence-based status section to distinguish them.
 
-The project is built around a realistic business problem: different business functions report different revenue figures because they use inconsistent metric definitions, different event-time versus booking-time treatments, and unreconciled source systems.
+The project is built around an illustrative business problem: different business functions report different revenue figures because they use inconsistent metric definitions, different event-time versus booking-time treatments, and unreconciled source systems. The dollar figures below are hypothetical, not observed Olist or UCI dataset outputs.
 
 | Business Function | Reported Revenue |
 |---|---:|
@@ -12,7 +12,7 @@ The project is built around a realistic business problem: different business fun
 | Marketing | $5.1M |
 | Operations | $4.6M |
 
-The objective is not simply to produce another revenue number. ShopAnalysis builds the engineering, reconciliation, governance, and observability framework required to explain the differences and establish reproducible, governed metrics.
+The full-dataset target of reconciling key metrics within 0.1% has not been verified. The objective is not simply to produce another revenue number. ShopAnalysis builds the engineering, reconciliation, governance, and observability framework required to explain the differences and establish reproducible, governed metrics.
 
 ---
 
@@ -522,11 +522,13 @@ The completed project is expected to include:
 
 ## Project Status
 
-**Portfolio status: Complete — feature development frozen (2026-10-25).**
+**Status: Portfolio milestone concluded; feature development frozen.** This is not a claim that the original end-to-end platform scope is fully implemented.
 
-ShopAnalysis is presented as a finished, version-controlled **data engineering portfolio deliverable**. The project includes governed RAW ingestion code, automated validation, infrastructure-as-code definitions, and supporting architecture and operational documentation. The cloud architecture is a reference design; infrastructure definitions in the repository are not evidence of deployment.
+**Implemented and documented:** governed Olist/DuckDB RAW ingestion components, audit and reconciliation controls, synthetic dbt validation, Python tests, Terraform source, and a GitHub Actions workflow.
 
-For the final evidence-based handoff, see [Portfolio Completion Record](docs/portfolio_completion.md) and [Reproducible Validation](docs/validation.md).
+**Designed or not verified as delivered:** full-Olist 0.1% reconciliation, the two full-dataset dbt controls excluded from synthetic CI, live AWS Object Lock enforcement, end-to-end Snowflake/Airflow deployment, executive dashboards, advanced analytics, benchmark results, and defense materials.
+
+The Finance/Marketing/Operations dollar figures are illustrative, not measured Olist (BRL) or UCI Online Retail II (GBP) results. See [Evidence and Scope](docs/evidence_and_scope.md), [Validation](docs/validation.md), and [Portfolio Completion Record](docs/portfolio_completion.md).
 
 ---
 
@@ -550,8 +552,8 @@ Key locations include:
 
 ## License
 
-A license has not yet been selected.
+No license has been selected; public availability does not itself grant reuse permission. The owner must choose a license.
 
 ## Reproducible validation
 
-See [Local validation and CI evidence](docs/validation.md) for the synthetic CI commands, coverage boundaries, and full-dataset test exclusions. Historical batch protection remains an implementation requirement under [ADR-001](docs/adr/ADR-001-raw-file-format-partitioning.md) (Proposed).
+See [Local validation and CI evidence](docs/validation.md) for the synthetic CI commands, coverage boundaries, and full-dataset test exclusions. Historical batch protection remains an implementation requirement under [ADR-001](docs/adr/ADR-001-raw-file-format-partitioning.md) (architectural policy Accepted; backend enforcement not certified).
