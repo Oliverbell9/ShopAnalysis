@@ -58,3 +58,9 @@ Candidate change set: five modified tracked files plus the new implementation, t
 - [ ] Repository integration separately authorized.
 
 **Disposition:** Local portfolio deliverable may be described as **validated with limitations**, never as production-certified or fully deployed.
+
+## 2026-10-27 local completion addendum
+
+**Final local disposition: COMPLETE / ACCEPTED / CLOSED.** Subsequent full-Olist evidence establishes 231/231 dbt PASS, two successful local Airflow runs (latest 5/5 tasks), 18/18 audit reconciliations, 2/2 RAW integrity checks, 19/19 targeted recovery tests, and 10/10 dashboard/performance tests. The delivered payment-versus-gross difference was approximately 0.0174%, within the defined 0.1% tolerance. Current read-only local DuckDB benchmark medians were 43.2978 ms (delivered KPI) and 0.2730 ms (monthly mart), seven timed repetitions each, cache uncontrolled.
+
+This addendum supersedes earlier local *not yet verified* statements only where these later results apply. It does not certify cloud deployment, live production controls, settlement, refunds, net revenue, or the charter's illustrative USD balances. Historical results and Windows symlink skips remain part of the audit record. See [final closure evidence](PROJECT_CLOSURE_2026-10-27.md).

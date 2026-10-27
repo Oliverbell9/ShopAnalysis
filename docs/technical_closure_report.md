@@ -45,3 +45,15 @@ ADR-001 selects hybrid local flat Parquet and partitioned object storage with pr
 ## Conclusion
 
 The repository demonstrates substantial components of a governed analytics platform, but the full charter's success criteria cannot yet be certified. This report is a closure **gap register and technical narrative**, not a declaration that the project is complete.
+
+## Subsequent local acceptance — 2026-10-27
+
+The original draft and gap register above document the earlier evidence cutoff. Subsequent isolated full-Olist validation established the four-phase local implementation as COMPLETE / ACCEPTED / CLOSED within its explicitly bounded scope.
+
+The later results include nine source integrity checks, 231 passing full-data dbt tests, 99,441 orders (96,478 delivered), delivered gross value of 15,419,773.75, delivered payments of 15,422,461.77, zero cross-mart discrepancies, two successful local Airflow runs, 18/18 audit reconciliations, 2/2 RAW integrity checks, 19/19 recovery tests, and 10/10 dashboard/performance tests.
+
+The measured payment-versus-gross difference was approximately 0.0174%, within the specified 0.1% comparison tolerance. Local DuckDB benchmark medians were 43.2978 ms and 0.2730 ms; neither is a production SLA.
+
+This later local acceptance does not certify AWS/Snowflake deployment, production IAM/RBAC enforcement, net revenue, refunds, settlement, cloud cost, or advanced analytics. Earlier historical evidence gaps remain applicable where no subsequent verification is documented.
+
+See [October 27 closure evidence](PROJECT_CLOSURE_2026-10-27.md).
